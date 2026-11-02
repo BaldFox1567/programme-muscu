@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Bloc 1 — Fondations (semaines 1 à 6)</title>
+<style>
+:root{--bg:#14161a;--card:#1e2126;--card2:#2a2e35;--tx:#f7f5f0;--mut:#a9aeb7;--acc:#f0a63a;--acc2:#f7c46f;--ok:#4fd39c;--line:#353a43;--red:#ff6b6b}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:18px/1.35 -apple-system,system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;border-radius:12px;background:var(--card2);color:var(--tx);min-height:48px;padding:0 14px;font-weight:700}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--acc2);outline-offset:2px}
+button.acc{background:var(--acc);color:#14161a}
+header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 12px 0}
+h1{font-size:18px;margin:0 0 8px;color:var(--acc2);font-weight:800}
+.tabs{display:flex;gap:6px}
+.tabs button{flex:1;border-radius:12px 12px 0 0;background:var(--card);font-size:16px;min-height:46px}
+.tabs button.on{background:var(--acc);color:#14161a}
+main{padding:12px 12px 120px;max-width:640px;margin:0 auto}
+.days{display:flex;gap:8px;margin-bottom:10px}
+.days button{flex:1;font-size:20px;min-height:56px;line-height:1.1}
+.days button small{display:block;font-size:12px;font-weight:600;opacity:.8}
+.days button.on{background:var(--acc);color:#14161a}
+.row{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+select,input{background:var(--card2);border:1px solid var(--line);border-radius:10px;min-height:48px;padding:0 10px}
+input[type=number]{width:100%;text-align:center;font-size:20px;font-weight:700;-moz-appearance:textfield}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none}
+.banner{background:#33260f;border:1px solid var(--acc);border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:16px}
+.info{color:var(--mut);font-size:15px;margin:0 0 12px;line-height:1.4}
+.card{background:var(--card);border-radius:16px;padding:12px;margin-bottom:12px;border:1px solid var(--line)}
+.card.ss{border:2px solid var(--acc2)}
+.sstitle{font-size:14px;color:var(--acc2);font-weight:800;margin-bottom:6px}
+.exh{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.exn{font-size:21px;font-weight:800;line-height:1.2}
+.num{display:inline-block;background:var(--acc);color:#14161a;border-radius:8px;padding:1px 8px;font-size:15px;margin-right:6px;vertical-align:middle}
+.presc{font-size:17px;color:var(--acc2);font-weight:700;margin:6px 0 4px}
+.small{font-size:14px;color:var(--mut)}
+.btns{display:flex;gap:8px;margin:10px 0 4px}
+.btns button{flex:1}
+.bandrow{display:flex;align-items:center;gap:8px;margin-top:10px;background:var(--card2);border-radius:12px;padding:6px 10px}
+.bandrow label{font-size:13px;color:var(--acc2);font-weight:800;white-space:nowrap}
+.bandrow input{flex:1;background:transparent;border:0;min-height:40px;font-size:16px;padding:0}
+.sets{display:grid;grid-template-columns:34px 1fr 1fr 54px;gap:6px;align-items:center;margin-top:8px}
+.sets .hd{font-size:12px;color:var(--mut);text-align:center}
+.chk{width:54px;height:48px;border-radius:12px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:22px;border:0}
+.chk.on{background:var(--ok);color:#14161a}
+.sn{font-weight:800;text-align:center;color:var(--mut)}
+#timer{position:fixed;left:0;right:0;bottom:0;background:#191c21;border-top:2px solid var(--line);padding:10px 12px;display:flex;align-items:center;gap:10px;z-index:6}
+#timer .t{font-size:44px;font-weight:900;font-variant-numeric:tabular-nums;flex:1;text-align:center;line-height:1}
+#timer .t small{display:block;font-size:12px;font-weight:600;color:var(--mut);margin-top:2px}
+#timer.run{border-color:var(--acc)}
+#timer.done{animation:fl .4s 8 alternate}
+@keyframes fl{from{background:#191c21}to{background:var(--acc)}}
+@media (prefers-reduced-motion:reduce){#timer.done{animation:none;background:var(--acc)}}
+#timer button{min-width:72px}
+.exsvg{width:100%;height:auto;background:#101216;border-radius:12px;margin:8px 0;display:block}
+.fl{fill:none;stroke:#f7f5f0;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.fh{fill:#f7f5f0}
+.fb{fill:var(--acc)}
+.band{fill:none;stroke:var(--ok);stroke-width:2.5;stroke-dasharray:4 3;stroke-linecap:round}
+.arr{stroke:var(--acc);stroke-width:3;fill:none}
+.p{fill:#3d434d}.p2{stroke:#7b8494;stroke-width:5;stroke-linecap:round;fill:none}
+.floor{stroke:#4d5563;stroke-width:2}
+.sep{stroke:#2c313a;stroke-width:1}
+.lbl{fill:#a9aeb7;font-size:8px;font-weight:700;text-anchor:middle;letter-spacing:1px}
+.lev{stroke:#7b8494;stroke-width:2;fill:none}
+#modal{position:fixed;inset:0;background:var(--bg);z-index:10;overflow:auto;padding:12px 12px 40px;display:none}
+#modal.on{display:block}
+.mh{display:flex;justify-content:space-between;align-items:center;gap:10px;position:sticky;top:0;background:var(--bg);padding:4px 0 8px;z-index:2}
+.mw{max-width:640px;margin:0 auto}
+h2{font-size:22px;margin:0;line-height:1.15}
+h3{font-size:14px;letter-spacing:.5px;color:var(--acc);margin:16px 0 6px;font-weight:800}
+ul{margin:0;padding-left:20px}li{margin-bottom:7px}
+.err li{margin-bottom:10px}
+.err b{color:var(--red)}
+.mus{width:100%;background:#101216;border-radius:12px;display:block}
+.m{fill:#3d434d}.m.p{fill:var(--acc)}.m.s{fill:#a86e26}
+.mo{fill:none;stroke:#5a6270;stroke-width:2}
+.yr{display:grid;grid-template-columns:repeat(13,1fr);gap:3px;margin:10px 0}
+.wk{aspect-ratio:1;border-radius:4px;font-size:10px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#14161a}
+.wk.dl{outline:2px dashed #fff;outline-offset:-3px}
+.wk.now{box-shadow:0 0 0 3px #fff}
+.blk{border-left:10px solid;padding:8px 10px;margin-bottom:10px;background:var(--card);border-radius:0 12px 12px 0}
+.blk b{font-size:18px}
+.blk .small{margin-top:4px}
+table{width:100%;border-collapse:collapse;font-size:15px}
+td,th{padding:6px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--mut);font-weight:700;font-size:13px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lab{font-size:13px;color:var(--mut);margin-bottom:3px}
+pre{white-space:pre-wrap;background:var(--card2);padding:10px;border-radius:10px;font-size:13px;margin:8px 0 0}
+.status{font-size:13px;color:var(--mut);margin-top:6px}
+.legend{display:flex;gap:12px;font-size:13px;color:var(--mut);margin-bottom:6px;flex-wrap:wrap}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.sw{width:14px;height:14px;border-radius:3px;display:inline-block}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="hd">Programme 12 mois</h1>
+  <div class="tabs">
+    <button id="tab-today" class="on" onclick="go('today')">Aujourd'hui</button>
+    <button id="tab-year" onclick="go('year')">Plan annuel</button>
+    <button id="tab-prog" onclick="go('prog')">Progression</button>
+  </div>
+</header>
+<main id="view"></main>
+<div id="timer"><div class="t"><span id="tt">—</span><small id="tl">Minuteur de repos</small></div><button onclick="stopTimer()">Stop</button><button id="tplus" onclick="addTimer(30)">+30 s</button></div>
+<div id="modal"><div class="mw" id="mbody"></div></div>
+
+<script>
+/* ---------- Données ---------- */
+const FLOOR='<line x1="0" y1="140" x2="110" y2="140" class="floor"/>';
+const BENCH_FLAT='<rect x="6" y="96" width="92" height="7" rx="2" class="p"/><rect x="14" y="103" width="5" height="37" class="p"/><rect x="70" y="103" width="5" height="37" class="p"/>';
+const STAND={c:[[55,18,7]],l:[[[55,26],[54,80]],[[54,80],[55,110],[55,140]],[[55,140],[68,140]]]};
+const SEAT='<rect x="14" y="18" width="6" height="122" class="p"/><rect x="30" y="96" width="42" height="6" class="p"/><rect x="30" y="56" width="6" height="42" class="p"/>';
+
+const EX={
+bench:{name:"Développé couché barre",equip:"Rack + barre 20 kg + banc plat roulé dans le rack",
+ sets:3,reps:"6-10",rir:"2",tempo:"2-0-1",rest:150,wu:true,
+ setup:["Banc plat (0°), centré sous la barre, yeux sous la barre.","Crochets : barre 5 cm au-dessus de tes bras tendus une fois allongé (tu décroches sans déserrer les omoplates).","Sécurités : 2 cm sous la barre quand elle touche ta poitrine, cage ouverte. Teste à vide.","Prise : index sur les marques de la barre (≈ 80 cm entre les mains, 1,5× largeur d'épaules). Pieds à plat, fesses collées."],
+ cues:["Omoplates serrées et abaissées avant de décrocher, elles ne bougent plus.","Barre vers le bas des pectoraux, coudes à 45-60° du torse, jamais à 90°.","Touche la poitrine sans rebond, pousse vers le haut et légèrement vers les crochets.","Pieds vissés dans le sol toute la série."],
+ errors:[["Coudes évasés à 90°, barre qui descend aux clavicules.","Tu le sens quand la trajectoire est parfaitement verticale au lieu d'une légère diagonale, et que l'avant de l'épaule tire."],["Fesses qui décollent ou omoplates qui se déserrent au sommet.","Tu le sens quand le haut du dos glisse sur le banc entre deux reps."]],
+ prog:"S1 : retest (20×10, 30×8, 40×5, 50×3, puis 60 × max reps à RIR 1, arrêt à 12). Ensuite double progression 6→10. À 3×10 RIR 2 : +10 kg et repars à 3×6. Si +10 kg ne passe pas 3×5 : ajoute une 4e série à l'ancienne charge 2 semaines, puis retente.",
+ mus:{p:["chest","triceps"],s:["delt"]},
+ props:BENCH_FLAT+FLOOR,
+ start:{c:[[22,84,7]],l:[[[35,88],[72,90]],[[72,90],[88,108],[92,140]],[[92,140],[104,140]],[[35,88],[40,70],[42,52]]],b:[[42,50,6]],a:[[52,54],[52,78]]},
+ end:{c:[[22,84,7]],l:[[[35,88],[72,90]],[[72,90],[88,108],[92,140]],[[92,140],[104,140]],[[35,88],[46,102],[40,84]]],b:[[40,82,6]]}},
+
+pullup_band:{name:"Tractions assistées (élastique)",equip:"Barre du rack + élastique de la boîte",
+ band:true,wl:"+kg",
+ sets:4,reps:"5-8",rir:"2",tempo:"1-1-2",rest:120,
+ setup:["Élastique épais passé autour de la barre, boucle sous UN genou (plus stable et moins d'aide en haut que sous le pied).","Prise pronation, un peu plus large que les épaules, pouces autour de la barre.","Jambes fléchies, pieds croisés, regard légèrement vers le haut."],
+ cues:["Départ bras tendus, épaules décollées des oreilles avant de tirer.","Tire les coudes vers les hanches, pense « poitrine vers la barre ».","Menton au-dessus de la barre 1 s, descente contrôlée en 2 s jusqu'aux bras tendus."],
+ errors:[["Amplitude coupée en bas (bras jamais tendus).","Tu le sens quand tu n'as jamais d'étirement sous les aisselles entre deux reps."],["Balancement des jambes pour lancer la rep.","Tu le sens quand le torse oscille et que les hanches partent devant."]],
+ prog:"Double progression 5→8 avec l'élastique épais. À 4×8 : passe à l'élastique plus fin. Le jeudi, compte tes tractions STRICTES à part : c'est l'indicateur qui compte.",
+ mus:{p:["lats","biceps"],s:["upperback","reardelt","forearm"]},
+ props:'<line x1="12" y1="14" x2="98" y2="14" class="p2"/>',
+ start:{c:[[55,42,7]],l:[[[55,54],[55,96]],[[55,96],[50,118],[48,136]],[[48,136],[58,138]],[[55,54],[56,34],[56,14]]],d:[[[55,14],[50,118]]],a:[[74,56],[74,24]]},
+ end:{c:[[56,9,7]],l:[[[55,20],[55,64]],[[55,64],[50,86],[48,104]],[[48,104],[57,106]],[[55,20],[62,40],[57,14]]],d:[[[57,14],[50,86]]]}},
+
+pullup_strict:{name:"Tractions strictes + négatives",equip:"Barre du rack, sans élastique. Banc ou sécurités pour monter.",
+ wl:"+kg",
+ sets:5,reps:"max ×3 puis 3 nég. ×2",rir:"0-1",tempo:"1-1-3 / nég. 5 s",rest:120,
+ setup:["3 séries au maximum de tractions strictes (menton au-dessus, bras tendus en bas).","Puis 2 séries de 3 négatives : monte sur le banc ou les sécurités, saute en position haute, descends en 5 secondes.","Même prise que les tractions assistées."],
+ cues:["Zéro élan : jambes immobiles, pieds croisés.","Sur les négatives, freine surtout la deuxième moitié de la descente.","Note le total strict (ex. 3+2+2 = 7)."],
+ errors:[["Compter des demi-reps.","Tu le sens quand le menton ne passe pas la barre ou que les bras ne se tendent pas en bas."],["Négatives lâchées en 2 s.","Tu le sens quand tu « tombes » sur la fin de la descente."]],
+ prog:"Objectif fin bloc 1 : total strict +2 par rapport à la semaine 1. Test de référence toutes les 4 semaines.",
+ mus:{p:["lats","biceps"],s:["upperback","reardelt","forearm"]},
+ props:'<line x1="12" y1="14" x2="98" y2="14" class="p2"/>',
+ start:{c:[[55,42,7]],l:[[[55,54],[55,96]],[[55,96],[50,118],[48,136]],[[48,136],[58,138]],[[55,54],[56,34],[56,14]]],a:[[74,56],[74,24]]},
+ end:{c:[[56,9,7]],l:[[[55,20],[55,64]],[[55,64],[50,86],[48,104]],[[48,104],[57,106]],[[55,20],[62,40],[57,14]]]}},
+
+plurima_ohp:{name:"Développé épaules Plurima",equip:"Plurima, module Overhead Press",
+ sets:3,reps:"8-12",rir:"2",tempo:"2-0-1",rest:90,
+ setup:["Siège réglé pour que les poignées soient à hauteur des clavicules quand tu es assis, bras fléchis (pas au-dessus des oreilles).","Dos entier collé au dossier, pieds à plat.","Choisis une prise (neutre ou pronation) et garde-la 6 semaines."],
+ cues:["Nombril rentré, lombaires collées sans forcer.","Pousse jusqu'aux bras presque tendus, sans claquer les coudes.","Redescends jusqu'aux clavicules, poignets droits, poids au milieu de la paume."],
+ errors:[["Cambrure exagérée pour pousser plus lourd.","Tu le sens quand le bas du dos quitte le dossier."],["Demi-reps en bas.","Tu le sens quand les poignées ne redescendent jamais sous le menton."]],
+ prog:"Double progression 8→12 puis +1 cran de la pile. C'est ton seul mouvement de poussée avec de petits paliers : c'est ici que la charge doit monter régulièrement.",
+ mus:{p:["delt","triceps"],s:["traps","chest"]},
+ props:SEAT+FLOOR,
+ start:{c:[[52,42,7]],l:[[[52,54],[50,96]],[[50,96],[74,100],[74,140]],[[74,140],[86,140]],[[52,54],[64,68],[60,56]],[[17,40],[60,54]]],b:[[60,54,5]],a:[[74,50],[74,22]]},
+ end:{c:[[52,42,7]],l:[[[52,54],[50,96]],[[50,96],[74,100],[74,140]],[[74,140],[86,140]],[[52,54],[58,36],[57,18]],[[17,40],[57,16]]],b:[[57,16,5]]}},
+
+bb_row:{name:"Rowing barre penché",equip:"Barre 20 kg au sol ou sur les sécurités du rack",
+ sets:3,reps:"8-12",rir:"2",tempo:"2-1-1",rest:120,
+ setup:["Barre à mi-tibia (sécurités du rack) ou au sol.","Pieds largeur de hanches, prise pronation un peu plus large que les épaules.","Buste à 30-45° de l'horizontale, genoux légèrement fléchis, dos plat. Départ à 40 kg (barre + 2×10)."],
+ cues:["Fixe l'angle du buste : il ne bouge pas de toute la série.","Tire la barre vers le nombril, coudes vers l'arrière et vers le haut.","Marque 1 s en haut, redescends jusqu'aux bras tendus."],
+ errors:[["Buste qui se redresse à chaque rep.","Tu le sens quand les jambes et les lombaires travaillent plus que le dos."],["Coudes écartés, barre tirée vers la poitrine.","Tu le sens quand ça brûle à l'arrière de l'épaule et pas dans le dos."]],
+ prog:"Double progression 8→12 puis +10 kg. Si +10 kg casse la technique (buste qui bouge) : reste à la charge, ajoute une 4e série.",
+ mus:{p:["lats","upperback"],s:["biceps","reardelt","lowerback"]},
+ props:FLOOR,
+ start:{c:[[88,58,7]],l:[[[80,64],[40,86]],[[40,86],[44,112],[42,140]],[[42,140],[56,140]],[[80,64],[84,90],[84,116]]],b:[[84,118,8]],a:[[98,112],[98,88]]},
+ end:{c:[[88,58,7]],l:[[[80,64],[40,86]],[[40,86],[44,112],[42,140]],[[42,140],[56,140]],[[80,64],[58,90],[72,84]]],b:[[72,86,8]]}},
+
+lat_raise:{name:"Élévations latérales haltères",equip:"Haltères 6 à 10 kg",
+ sets:3,reps:"12-20",rir:"1",tempo:"1-1-2",rest:0,
+ setup:["Debout, ou assis sur le banc réglé à 80° si tu triches avec le buste.","Départ à 6-8 kg, pas 14. Coudes très légèrement fléchis, paumes vers le sol."],
+ cues:["Ce sont les coudes qui montent, pas les mains.","Arrête à hauteur d'épaule, 1 s de pause, redescends en 2 s.","Épaules basses, pas de haussement."],
+ errors:[["Élan des hanches.","Tu le sens quand le buste « pousse » l'haltère au départ : charge trop lourde."],["Haussement des trapèzes.","Tu le sens quand ça tire dans le cou et pas sur le côté de l'épaule."]],
+ prog:"Superset A1 avec le curl marteau (A2), 60 s de repos après A2. 12→20 reps puis +2 kg.",
+ mus:{p:["delt"],s:["traps"]},
+ props:FLOOR,
+ start:{c:[[55,18,7]],l:[[[55,26],[55,80]],[[38,32],[72,32]],[[45,80],[65,80]],[[45,80],[44,140]],[[65,80],[66,140]],[[38,32],[34,58],[34,84]],[[72,32],[76,58],[76,84]]],b:[[34,88,5],[76,88,5]],a:[[88,80],[100,44]]},
+ end:{c:[[55,18,7]],l:[[[55,26],[55,80]],[[38,32],[72,32]],[[45,80],[65,80]],[[45,80],[44,140]],[[65,80],[66,140]],[[38,32],[19,30],[4,34]],[[72,32],[91,30],[106,34]]],b:[[4,36,5],[106,36,5]]}},
+
+curl_hammer:{name:"Curl marteau haltères",equip:"Haltères",
+ sets:3,reps:"10-15",rir:"1",tempo:"1-0-3",rest:60,
+ setup:["Debout, haltères prise neutre (pouces vers le haut), coudes collés aux côtes.","Départ à 10-12 kg."],
+ cues:["Coudes fixes, ils ne partent pas devant.","Monte en 1 s, redescends en 3 s jusqu'aux bras tendus.","Aucun balancier du buste."],
+ errors:[["Coudes qui avancent.","Tu le sens quand l'haltère finit devant l'épaule : c'est l'épaule qui a monté le poids."],["Demi-reps en bas.","Tu le sens quand tu n'as jamais de tension bras tendu."]],
+ prog:"10→15 reps puis +2 kg. À 18 kg : descente en 4 s, puis reps 1,5 (une complète + une demi en bas).",
+ mus:{p:["biceps","forearm"],s:[]},
+ props:FLOOR,
+ start:{c:STAND.c,l:[...STAND.l,[[55,26],[58,58],[60,90]]],b:[[60,92,5]],a:[[72,86],[82,46]]},
+ end:{c:STAND.c,l:[...STAND.l,[[55,26],[58,58],[72,38]]],b:[[74,36,5]]}},
+
+squat:{name:"Squat barre (réintroduction)",equip:"Rack + barre 20 kg. S1-2 : haltère 18 kg (goblet) + barre à vide",
+ sets:3,reps:"6-10",rir:"3",tempo:"3-1-1",rest:150,wu:true,
+ setup:["Crochets : barre un peu SOUS le haut des épaules, tu plies légèrement les genoux pour la décrocher (jamais sur la pointe des pieds).","Sécurités : 3-5 cm sous la hauteur de la barre en position basse. Teste à vide.","Barre haute sur les trapèzes, prise juste plus large que les épaules, coudes sous la barre.","Pieds largeur d'épaules, pointes ouvertes à 15-30°."],
+ cues:["Grande inspiration, ventre gonflé, puis descends.","Genoux poussés dans l'axe des orteils dès le début.","Descends au moins à cuisses parallèles (hanche au niveau du genou).","Remonte en poussant le sol, poitrine haute : hanches et épaules montent ensemble."],
+ errors:[["Talons qui décollent ou genoux qui rentrent.","Tu le sens quand le poids part sur l'avant du pied et que tu bascules."],["Good-morning : hanches qui remontent avant les épaules.","Tu le sens quand le bas du dos prend tout et que la barre passe devant les pieds."]],
+ prog:"S1-2 : goblet 18 kg 3×10 + barre à vide 3×8 (filme-toi de profil). S3 : 30 kg. S4 : 40 kg. S5 : 50 kg. S6 (décharge) : 40 kg. Bloc 2 : double progression 6→10.",
+ mus:{p:["quads","glutes"],s:["abs","lowerback","hams"]},
+ props:FLOOR,
+ start:{c:[[55,18,7]],l:[[[55,26],[52,80]],[[52,80],[54,110],[54,140]],[[54,140],[68,140]],[[55,26],[62,44],[54,30]]],b:[[50,26,7]],a:[[80,50],[80,92]]},
+ end:{c:[[62,52,7]],l:[[[58,62],[32,96]],[[32,96],[66,100],[54,140]],[[54,140],[68,140]],[[58,62],[66,80],[56,66]]],b:[[52,62,7]]}},
+
+rdl:{name:"Soulevé de terre roumain",equip:"Barre 20 kg, décrochée des crochets à mi-cuisse",
+ sets:3,reps:"8-12",rir:"2",tempo:"3-1-1",rest:120,
+ setup:["Crochets à mi-cuisse pour décrocher la barre, puis recule d'un pas.","Prise pronation largeur d'épaules, pieds largeur de hanches.","Genoux à peine fléchis, et ils ne bougent plus. Départ à 50-60 kg."],
+ cues:["Pousse les hanches vers l'arrière, la barre glisse le long des cuisses.","Descends jusqu'à l'étirement fort des ischios (barre vers mi-tibia), dos plat.","Remonte en ramenant les hanches vers la barre, pas en tirant avec le dos."],
+ errors:[["Genoux qui plient de plus en plus : ça devient un squat.","Tu le sens quand l'étirement derrière la cuisse disparaît."],["Barre qui s'éloigne des jambes.","Tu le sens quand les lombaires chauffent et que les épaules sont tirées devant."]],
+ prog:"Double progression 8→12 puis +10 kg.",
+ mus:{p:["hams","glutes"],s:["lowerback","forearm"]},
+ props:FLOOR,
+ start:{c:[[55,18,7]],l:[[[55,26],[53,80]],[[53,80],[54,110],[54,140]],[[54,140],[68,140]],[[55,26],[62,58],[64,90]]],b:[[64,92,8]],a:[[82,92],[82,112]]},
+ end:{c:[[88,50,7]],l:[[[80,56],[36,84]],[[36,84],[46,112],[50,140]],[[50,140],[64,140]],[[80,56],[76,84],[72,112]]],b:[[72,114,8]]}},
+
+leg_ext:{name:"Leg extension Plurima",equip:"Plurima, module Leg Extension",
+ sets:3,reps:"12-15",rir:"1",tempo:"1-1-3",rest:0,
+ setup:["Axe de rotation aligné avec le milieu du genou : règle la profondeur de l'assise.","Rouleau sur le bas du tibia, juste au-dessus des chevilles.","Dos collé, mains sur les poignées."],
+ cues:["Monte en 1 s jusqu'aux jambes tendues, serre les quadris 1 s.","Descends en 3 s, la pile ne claque jamais.","Pointes de pieds tirées vers toi."],
+ errors:[["Fesses qui décollent pour aider.","Tu le sens quand tu « sautes » du siège sur les dernières reps."],["Descente lâchée.","Tu l'entends : bruit de la pile."]],
+ prog:"Superset B1 avec le leg curl (B2), 90 s après B2. 12→15 reps puis +1 cran.",
+ mus:{p:["quads"],s:[]},
+ props:'<rect x="14" y="18" width="6" height="122" class="p"/><rect x="22" y="96" width="36" height="6" class="p"/><rect x="22" y="52" width="6" height="46" class="p"/>'+FLOOR,
+ start:{c:[[40,42,7]],l:[[[40,54],[42,96]],[[42,96],[62,100],[58,130]],[[58,130],[68,134]]],b:[[58,131,5]],a:[[74,126],[100,102]]},
+ end:{c:[[40,42,7]],l:[[[40,54],[42,96]],[[42,96],[62,100],[96,92]],[[96,92],[104,84]]],b:[[96,93,5]]}},
+
+leg_curl:{name:"Leg curl Plurima",equip:"Plurima, module converti en Leg Curl",
+ sets:3,reps:"10-15",rir:"1",tempo:"1-1-3",rest:90,
+ setup:["Rouleau derrière les chevilles, coussin de blocage bien serré sur les cuisses.","Même réglage d'axe que le leg extension."],
+ cues:["Tire les talons vers les fesses jusqu'au contact ou presque.","Contrôle la remontée en 3 s.","Hanches collées au siège."],
+ errors:[["Hanches qui décollent pour faire levier.","Tu le sens quand tu as l'impression de te soulever du siège."],["Amplitude courte.","Tu le sens quand tu n'as jamais de contraction complète derrière la cuisse."]],
+ prog:"10→15 reps puis +1 cran.",
+ mus:{p:["hams"],s:["calves"]},
+ props:'<rect x="14" y="18" width="6" height="122" class="p"/><rect x="22" y="96" width="36" height="6" class="p"/><rect x="22" y="52" width="6" height="46" class="p"/>'+FLOOR,
+ start:{c:[[40,42,7]],l:[[[40,54],[42,96]],[[42,96],[62,100],[96,92]],[[96,92],[104,84]]],b:[[96,93,5]],a:[[100,106],[72,130]]},
+ end:{c:[[40,42,7]],l:[[[40,54],[42,96]],[[42,96],[62,100],[62,132]],[[62,132],[72,136]]],b:[[62,133,5]]}},
+
+bulgarian:{name:"Fente bulgare haltères",equip:"Banc plat + haltères",
+ sets:2,reps:"8-12 / jambe",rir:"2",tempo:"2-1-1",rest:90,
+ setup:["Banc plat derrière toi, dessus du pied arrière posé sur le banc.","Pied avant à un grand pas du banc, à plat, écarté de 10 cm de l'axe pour l'équilibre.","Départ sans charge, puis 6-8 kg par main."],
+ cues:["Descends droit, genou arrière vers le sol, buste légèrement incliné devant.","Genou avant dans l'axe du pied.","Remonte en poussant sur tout le pied avant."],
+ errors:[["Pied avant trop près du banc.","Tu le sens quand le genou file devant et que ça tire sur la rotule."],["Instabilité latérale.","Tu le sens quand la cheville tremble : écarte le pied de 10 cm de plus."]],
+ prog:"8→12 reps puis +2 kg par main. Fais d'abord la jambe la plus faible.",
+ mus:{p:["quads","glutes"],s:["hams"]},
+ props:'<rect x="2" y="98" width="30" height="7" rx="2" class="p"/><rect x="6" y="105" width="4" height="35" class="p"/>'+FLOOR,
+ start:{c:[[62,18,7]],l:[[[62,26],[58,80]],[[58,80],[64,112],[62,140]],[[62,140],[76,140]],[[58,80],[36,104],[16,96]],[[62,26],[62,58],[64,88]]],b:[[64,90,5]],a:[[88,50],[88,92]]},
+ end:{c:[[70,52,7]],l:[[[68,60],[56,104]],[[56,104],[80,106],[62,140]],[[62,140],[76,140]],[[56,104],[36,126],[16,96]],[[68,60],[70,90],[70,116]]],b:[[70,118,5]]}},
+
+calf:{name:"Mollets debout unilatéral",equip:"Disque de 20 kg à plat + haltère 18 kg, main libre sur le rack",
+ sets:3,reps:"12-20 / jambe",rir:"1",tempo:"2-1-1-1",rest:0,
+ setup:["Avant-pied sur un disque de 20 kg posé à plat (ou la marche du Skillrun arrêté).","Haltère dans la main du côté qui travaille, l'autre main sur le montant du rack.","Genou tendu toute la série."],
+ cues:["Talon 2 s vers le bas sous le niveau du disque, pause 1 s en bas.","Monte sur la pointe, pause 1 s en haut.","Pas de rebond."],
+ errors:[["Rebond en bas.","Tu le sens quand le rythme accélère et que le tendon « ressort » tout seul."],["Genou qui plie.","Tu le sens quand le mollet ne brûle jamais."]],
+ prog:"Superset C1 avec les relevés de jambes (C2), 60 s après C2. 12→20 reps ; ensuite descente en 4 s.",
+ mus:{p:["calves"],s:[]},
+ props:'<rect x="40" y="130" width="30" height="10" rx="2" class="p"/>'+FLOOR,
+ start:{c:[[55,18,7]],l:[[[55,26],[54,80]],[[54,80],[55,110],[55,140]],[[46,142],[66,130]],[[55,26],[58,58],[60,90]]],b:[[60,92,5]],a:[[80,104],[80,74]]},
+ end:{c:[[55,8,7]],l:[[[55,16],[54,70]],[[54,70],[55,100],[56,124]],[[48,124],[66,130]],[[55,16],[58,48],[60,80]]],b:[[60,82,5]]}},
+
+leg_raise:{name:"Relevés de genoux aux sangles",equip:"Sangles suspendues du Plurima",
+ wl:"—",
+ sets:3,reps:"10-15",rir:"1",tempo:"1-1-3",rest:60,
+ setup:["Bras dans les boucles jusqu'aux aisselles, coudes à 90°.","Corps suspendu, épaules basses, jambes tendues au départ."],
+ cues:["Monte les genoux vers la poitrine en enroulant le bassin, pas seulement en pliant les hanches.","Descends en 3 s.","Aucun balancement."],
+ errors:[["Balancement.","Tu le sens quand le buste oscille d'avant en arrière."],["Bassin qui ne s'enroule pas.","Tu le sens quand ça tire dans l'aine et pas dans les abdos."]],
+ prog:"10→15 reps, puis jambes de plus en plus tendues.",
+ mus:{p:["abs"],s:["forearm"]},
+ props:'<line x1="50" y1="0" x2="50" y2="26" class="p2"/><line x1="66" y1="0" x2="66" y2="26" class="p2"/>',
+ start:{c:[[55,44,7]],l:[[[55,56],[55,98]],[[55,56],[50,36],[50,26]],[[55,56],[66,36],[66,26]],[[55,98],[52,120],[52,138]],[[52,138],[62,140]]],a:[[74,132],[92,96]]},
+ end:{c:[[55,44,7]],l:[[[55,56],[52,98]],[[55,56],[50,36],[50,26]],[[55,56],[66,36],[66,26]],[[52,98],[80,84],[76,110]],[[76,110],[86,112]]]}},
+
+deadlift:{name:"Soulevé de terre",equip:"Barre 20 kg au sol, disques de 20 kg",
+ sets:3,reps:"4-6",rir:"2",tempo:"2-0-2",rest:180,wu:true,
+ setup:["Barre au-dessus du milieu du pied, à 2-3 cm des tibias. Pieds largeur de hanches.","Prise pronation juste à l'extérieur des jambes ; prise mixte quand la pronation lâche.","Hanches plus hautes que les genoux, plus basses que les épaules. Épaules juste devant la barre."],
+ cues:["Tibias contre la barre, tension dans les ischios avant de tirer (aspire le mou de la barre).","Pousse le sol avec les jambes, poitrine haute, barre collée aux jambes.","Verrouille en serrant les fesses, sans hyper-cambrer.","Redescends contrôlé, hanches d'abord."],
+ errors:[["Hanches qui montent en premier.","Tu le sens quand ça devient un tirage dos rond, jambes déjà tendues."],["Barre qui s'éloigne des tibias.","Tu le sens quand tu bascules vers l'avant et que les lombaires chauffent."]],
+ prog:"S1 : retest (60×5, 80×3, 100×2, 110×1 si la barre reste collée et le dos plat ; arrêt à RIR 2). Séries de travail à 80 % du meilleur single. Double progression 4→6 puis +10 kg.",
+ mus:{p:["hams","glutes","lowerback"],s:["quads","traps","forearm","upperback"]},
+ props:FLOOR,
+ start:{c:[[72,52,7]],l:[[[66,58],[34,80]],[[34,80],[52,110],[56,140]],[[56,140],[70,140]],[[66,58],[64,96],[64,124]]],b:[[64,132,8]],a:[[84,122],[84,90]]},
+ end:{c:[[55,18,7]],l:[[[55,26],[53,80]],[[53,80],[54,110],[54,140]],[[54,140],[68,140]],[[55,26],[60,58],[62,90]]],b:[[62,92,8]]}},
+
+incline_db:{name:"Développé incliné haltères 18 kg",equip:"Banc réglable à 30° + haltères 18 kg",
+ sets:3,reps:"8-15",rir:"1",tempo:"3-1-1",rest:120,
+ setup:["Banc à 30° (le 2e cran en général). Pas plus : à 45° c'est l'épaule qui travaille.","Assis, haltères sur les cuisses, bascule en arrière en les montant avec les genoux.","Pieds à plat, omoplates serrées et abaissées."],
+ cues:["Descends jusqu'aux haltères au niveau de la poitrine, coudes à 45-60°.","3 s de descente, 1 s de pause en bas, 1 s de montée : le tempo EST la charge.","En haut, rapproche légèrement les haltères sans les cogner."],
+ errors:[["Descente coupée pour faire plus de reps.","Tu le sens quand il n'y a jamais d'étirement du pectoral en bas."],["Banc trop incliné.","Tu le sens quand l'avant de l'épaule fatigue avant les pecs."]],
+ prog:"Charge morte à 18 kg. La progression, c'est 8→15 reps en tempo 3-1-1 strict. À 3×15 : passe en 4-2-1 et repars à 8. Bloc 2 : développé incliné barre dans le rack.",
+ mus:{p:["chest"],s:["delt","triceps"]},
+ props:'<polygon points="60,100 20,78 24,72 64,94" class="p"/><rect x="60" y="100" width="30" height="7" rx="2" class="p"/><rect x="72" y="107" width="5" height="33" class="p"/>'+FLOOR,
+ start:{c:[[18,68,7]],l:[[[30,80],[62,96]],[[62,96],[84,108],[88,140]],[[88,140],[100,140]],[[30,80],[36,60],[40,42]]],b:[[40,40,5]],a:[[52,46],[52,72]]},
+ end:{c:[[18,68,7]],l:[[[30,80],[62,96]],[[62,96],[84,108],[88,140]],[[88,140],[100,140]],[[30,80],[42,94],[36,76]]],b:[[36,74,5]]}},
+
+db_row:{name:"Rowing haltère unilatéral",equip:"Banc plat + haltère 18 kg",
+ sets:3,reps:"10-15 / bras",rir:"1",tempo:"1-1-3",rest:90,
+ setup:["Main et genou gauches sur le banc, pied droit au sol, dos plat quasi horizontal.","Haltère 18 kg dans la main droite, bras tendu, épaule qui « descend » en bas."],
+ cues:["Tire le coude vers la hanche, haltère vers le bas des côtes, pas vers l'épaule.","Pause 1 s en haut, 3 s de descente.","Le buste ne tourne pas."],
+ errors:[["Rotation du buste pour tricher.","Tu le sens quand l'épaule libre monte vers le plafond."],["Tirer avec le biceps, coude qui s'écarte.","Tu le sens quand ça brûle dans le bras et pas dans le dos."]],
+ prog:"Charge morte à 18 kg. 10→15 reps en 1-1-3, puis 2 s de pause en haut, puis reps 1,5.",
+ mus:{p:["lats","upperback"],s:["biceps","reardelt"]},
+ props:BENCH_FLAT+FLOOR,
+ start:{c:[[92,76,7]],l:[[[82,84],[44,90]],[[82,84],[70,100]],[[44,90],[26,100],[12,102]],[[44,90],[52,118],[54,140]],[[54,140],[66,140]],[[82,84],[84,106],[84,128]]],b:[[84,130,5]],a:[[100,124],[100,94]]},
+ end:{c:[[92,76,7]],l:[[[82,84],[44,90]],[[82,84],[70,100]],[[44,90],[26,100],[12,102]],[[44,90],[52,118],[54,140]],[[54,140],[66,140]],[[82,84],[96,74],[80,92]]],b:[[80,94,5]]}},
+
+tri_overhead:{name:"Extension triceps nuque (haltère)",equip:"Un haltère tenu à deux mains, assis sur le banc à 80° ou debout",
+ sets:3,reps:"10-15",rir:"1",tempo:"2-1-1",rest:0,
+ setup:["Haltère tenu par le dessus, paumes sous le disque du haut.","Bras tendus au-dessus de la tête, coudes proches des oreilles. Départ à 12-14 kg."],
+ cues:["Descends l'haltère derrière la nuque en pliant seulement les coudes, en 2 s.","Étire bien en bas, remonte sans écarter les coudes.","Gainage : pas de cambrure."],
+ errors:[["Coudes qui s'écartent.","Tu le sens quand ça part dans les épaules."],["Amplitude courte.","Tu le sens quand tu n'as jamais d'étirement à l'arrière du bras."]],
+ prog:"Superset D1 avec le face pull (D2), 60 s après D2. 10→15 reps puis +2 kg.",
+ mus:{p:["triceps"],s:[]},
+ props:FLOOR,
+ start:{c:[[55,34,7]],l:[[[55,42],[54,92]],[[54,92],[55,116],[55,140]],[[55,140],[68,140]],[[55,42],[60,20],[44,18]]],b:[[42,18,5]],a:[[34,14],[48,6]]},
+ end:{c:[[55,34,7]],l:[[[55,42],[54,92]],[[54,92],[55,116],[55,140]],[[55,140],[68,140]],[[55,42],[58,22],[60,6]]],b:[[60,5,4]]}},
+
+face_pull:{name:"Face pull élastique",equip:"Élastique fixé sur un montant du rack à hauteur du visage",
+ band:true,wl:"—",
+ sets:3,reps:"15-20",rir:"1",tempo:"1-1-2",rest:60,
+ setup:["Élastique accroché à hauteur du visage sur le montant du rack.","Recule jusqu'à avoir de la tension bras tendus.","Prise pronation ou neutre, une main par brin."],
+ cues:["Tire les mains vers les oreilles, coudes hauts et vers l'arrière.","Pause 1 s en serrant les omoplates, retour en 2 s.","Épaules basses."],
+ errors:[["Tirer bas vers la poitrine : c'est un rowing.","Tu le sens quand les coudes finissent sous les épaules."],["Trop de tension : tu te penches en arrière.","Tu le sens quand le corps avance à chaque rep."]],
+ prog:"15→20 reps puis élastique plus fort ou un pas de recul.",
+ mus:{p:["reardelt","upperback"],s:["traps"]},
+ props:'<rect x="8" y="20" width="5" height="120" class="p"/>'+FLOOR,
+ start:{c:[[62,28,7]],l:[[[62,36],[60,88]],[[60,88],[60,114],[60,140]],[[60,140],[72,140]],[[62,36],[44,38],[26,40]]],d:[[[13,40],[26,40]]],a:[[34,54],[62,54]]},
+ end:{c:[[62,28,7]],l:[[[62,36],[60,88]],[[60,88],[60,114],[60,140]],[[60,140],[72,140]],[[62,36],[74,34],[66,26]]],d:[[[13,40],[66,26]]]}},
+
+incline_bb:{name:"Développé incliné barre",equip:"Rack + barre 20 kg + banc réglable à 30°",
+ sets:4,reps:"6-10",rir:"2",tempo:"2-1-1",rest:150,wu:true,
+ setup:["Banc à 30°, glissé dans le rack, dossier aligné sous la barre.","Crochets : barre 5 cm au-dessus de tes bras tendus une fois installé.","Sécurités réglées 2 cm sous le point bas (haut des pectoraux). Teste à vide.","Prise un poil plus étroite qu'au couché plat, pieds à plat, omoplates serrées."],
+ cues:["Barre vers le haut des pectoraux, juste sous les clavicules.","Coudes à 45-60°, jamais évasés à 90°.","Pause 1 s en bas sans rebond, puis pousse en diagonale vers les crochets.","Fesses collées au banc toute la série."],
+ errors:[["Banc trop incliné, au-delà de 30-35°.","Tu le sens quand l'avant de l'épaule fatigue avant les pecs."],["Barre qui descend trop haut, vers le cou.","Tu le sens quand les poignets partent en arrière et que l'épaule tire."]],
+ prog:"Départ à 40 kg (barre + 2×10), retest de la charge en première semaine du bloc. Double progression 6→10 puis +10 kg. Remplace définitivement le développé incliné haltères : la barre lève le plafond des 18 kg.",
+ mus:{p:["chest"],s:["delt","triceps"]},
+ props:'<polygon points="60,100 20,78 24,72 64,94" class="p"/><rect x="60" y="100" width="30" height="7" rx="2" class="p"/><rect x="72" y="107" width="5" height="33" class="p"/>'+FLOOR,
+ start:{c:[[18,68,7]],l:[[[30,80],[62,96]],[[62,96],[84,108],[88,140]],[[88,140],[100,140]],[[30,80],[44,90],[38,74]]],b:[[36,72,7]],a:[[52,66],[52,40]]},
+ end:{c:[[18,68,7]],l:[[[30,80],[62,96]],[[62,96],[84,108],[88,140]],[[88,140],[100,140]],[[30,80],[36,58],[38,40]]],b:[[38,38,7]]}},
+
+plurima_press:{name:"Développé couché Plurima",equip:"Plurima, module Press horizontal",
+ sets:4,reps:"10-15",rir:"1",tempo:"2-1-2",rest:90,
+ setup:["Assise réglée pour que les poignées arrivent au niveau du milieu des pectoraux, pas des épaules.","Dos entier collé au dossier, pieds à plat au sol.","Prise pronation, poignets droits dans l'axe des avant-bras."],
+ cues:["Pousse jusqu'aux bras presque tendus, sans claquer les coudes.","Revenir en 2 s jusqu'à sentir l'étirement des pectoraux, poignées au niveau du torse.","Omoplates serrées et abaissées, elles ne bougent pas.","Pause 1 s en position basse : c'est là que la machine devient utile."],
+ errors:[["Amplitude coupée pour charger plus lourd.","Tu le sens quand les mains ne reviennent jamais au niveau du torse."],["Épaules qui s'enroulent vers l'avant en fin de poussée.","Tu le sens quand la tension part dans l'avant de l'épaule."]],
+ prog:"Machine à paliers fins : c'est ici que la charge monte régulièrement. Double progression 10→15 puis +1 cran. Sert de deuxième dose de pectoraux quand la barre plafonne.",
+ mus:{p:["chest","triceps"],s:["delt"]},
+ props:SEAT+FLOOR,
+ start:{c:[[40,42,7]],l:[[[40,54],[42,96]],[[42,96],[66,100],[66,140]],[[66,140],[78,140]],[[40,54],[52,64],[46,58]]],b:[[45,57,6]],a:[[60,44],[88,44]]},
+ end:{c:[[40,42,7]],l:[[[40,54],[42,96]],[[42,96],[66,100],[66,140]],[[66,140],[78,140]],[[40,54],[60,58],[78,60]]],b:[[80,60,6]]}},
+
+pullup_weighted:{name:"Tractions lestées",equip:"Barre du rack + sac à dos chargé de disques (ou ceinture lestée)",
+ wl:"+kg",
+ sets:4,reps:"4-6",rir:"1",tempo:"1-1-3",rest:150,
+ setup:["Charge dans un sac à dos serré, sangles bien ajustées pour qu'il ne balance pas.","Départ à +5 kg (un disque de 5 kg). Ne commence pas plus lourd.","Prise pronation un peu plus large que les épaules, jambes fléchies et immobiles."],
+ cues:["Bras tendus en bas à chaque rep, épaules décollées des oreilles avant de tirer.","Menton franchement au-dessus de la barre, 1 s de pause.","Descente contrôlée en 3 s : c'est elle qui construit."],
+ errors:[["Amplitude qui se réduit dès que la charge monte.","Tu le sens quand le menton frôle la barre au lieu de la dépasser."],["Sac mal serré qui balance et casse la trajectoire.","Tu le sens quand le corps oscille d'avant en arrière à la descente."]],
+ prog:"4→6 reps sur les 4 séries, puis +2,5 ou +5 kg. Si tu n'as pas de petits disques, alterne une semaine à +5 kg et une semaine à +10 kg sur moins de reps. Cible fin d'année : +10 kg × 8.",
+ mus:{p:["lats","biceps"],s:["upperback","reardelt","abs","forearm"]},
+ props:'<line x1="12" y1="14" x2="98" y2="14" class="p2"/>',
+ start:{c:[[55,42,7]],l:[[[55,54],[55,96]],[[55,96],[50,118],[48,136]],[[48,136],[58,138]],[[55,54],[56,34],[56,14]]],b:[[64,86,7]],a:[[76,56],[76,24]]},
+ end:{c:[[56,9,7]],l:[[[55,20],[55,64]],[[55,64],[50,86],[48,104]],[[48,104],[57,106]],[[55,20],[62,40],[57,14]]],b:[[64,54,7]]}}
+};
+
+const SESS={
+lun:{label:"Lundi",sub:"Push",wu:"Échauffement 4 min : 10 rotations d'épaules avec élastique, 10 pompes contre le rack, puis 2 séries d'approche au développé couché (barre à vide × 10, 70 % × 4)."},
+mar:{label:"Mardi",sub:"Pull",wu:"Échauffement 4 min : 2 min de rameur Skillrow souple, 10 face pulls légers à l'élastique, 5 tractions avec aide maximale."},
+jeu:{label:"Jeudi",sub:"Legs",wu:"Échauffement 5 min : 2 min de vélo, 10 balancements de jambe par côté, 10 squats à vide avec pause en bas, puis 2 séries d'approche au squat."}
+};
+
+// e(nom, surcharges) : un exercice, avec séries/reps/RIR propres au bloc
+const e=(ex,ov)=>Object.assign({ex:ex},ov||{});
+const SS=(a,b,rest)=>({ss:[a,b],rest:rest||60});
+
+const PLAN={
+1:{note:"Quatre postes, 45 minutes pleines. Push lundi, Pull mardi, Legs jeudi : les jambes passent au jeudi parce que le mardi ne tenait pas et que le squat en a payé le prix. Objectif du bloc : finir les trois séances en entier, pas battre des records.",
+ lun:["bench","plurima_ohp",SS("incline_db","lat_raise",75),"tri_overhead"],
+ mar:["pullup_band","bb_row",SS("db_row","face_pull",75),"curl_hammer"],
+ jeu:[e("squat",{sets:4,reps:"5-8",rir:"2"}),"rdl",SS("leg_ext","leg_curl",90),SS("calf","leg_raise")]},
+
+2:{note:"Une série de plus sur les trois gros mouvements. Le développé incliné haltères passe à la barre : à 18×12 tu es au plafond du rack, la barre lève la limite. Élastique plus fin aux tractions dès que tu tiens 4×8.",
+ lun:[e("bench",{sets:4}),e("incline_bb",{sets:3}),SS("plurima_ohp","lat_raise",75),"tri_overhead"],
+ mar:[e("pullup_band",{sets:4,reps:"6-10"}),e("bb_row",{sets:4}),SS("db_row","face_pull",75),"curl_hammer"],
+ jeu:[e("squat",{sets:4,reps:"6-10",rir:"2"}),e("rdl",{sets:4}),SS("leg_ext","leg_curl",90),SS("calf","leg_raise")]},
+
+3:{note:"Bloc lourd. Fourchettes en 4-8 sur la barre, RIR 1 voire 0 sur la dernière série, repos allongé à 3 min sur les mouvements principaux. Les accessoires perdent une série : le volume baisse d'environ 20 %, c'est voulu.",
+ lun:[e("bench",{sets:4,reps:"4-8",rir:"1",rest:180}),e("incline_bb",{sets:3,reps:"6-10",rir:"1"}),SS("plurima_ohp","lat_raise",75),e("tri_overhead",{sets:2})],
+ mar:[e("pullup_band",{sets:4,reps:"5-8",rir:"1"}),e("bb_row",{sets:4,reps:"6-10",rir:"1"}),SS("db_row","face_pull",75),e("curl_hammer",{sets:2})],
+ jeu:[e("squat",{sets:4,reps:"4-8",rir:"1",tempo:"2-1-1",rest:180}),e("rdl",{sets:3,reps:"6-8",rir:"1"}),SS("leg_ext","leg_curl",90),e("calf",{sets:3})]},
+
+4:{note:"Retour au volume en reps hautes, et c'est le bloc des techniques d'intensité sur tout ce qui plafonne à 18 kg : reps 1,5 au rowing haltère, pause de 2 s au curl. Le développé couché Plurima entre le lundi comme deuxième dose de pectoraux à paliers fins.",
+ lun:[e("bench",{sets:4,reps:"8-12",rir:"2"}),e("plurima_press",{sets:4}),SS("plurima_ohp","lat_raise",75),e("tri_overhead",{sets:3,reps:"12-15"})],
+ mar:[e("pullup_band",{sets:4,reps:"8-12"}),e("bb_row",{sets:4,reps:"10-15"}),SS("db_row","face_pull",75),e("curl_hammer",{sets:3,reps:"12-15"})],
+ jeu:[e("squat",{sets:4,reps:"8-12",rir:"2"}),e("rdl",{sets:4,reps:"10-12"}),SS("leg_ext","leg_curl",90),"bulgarian"]},
+
+5:{note:"Les tractions lestées arrivent : +5 kg dans un sac à dos, 4×4-6. Si tu ne tiens pas 4 reps propres, reste aux tractions strictes une semaine de plus. Le reste repasse en charges lourdes comme au bloc 3.",
+ lun:[e("bench",{sets:4,reps:"4-8",rir:"1",rest:180}),e("incline_bb",{sets:4,reps:"4-8",rir:"1"}),SS("plurima_ohp","lat_raise",75),e("tri_overhead",{sets:2})],
+ mar:["pullup_weighted",e("bb_row",{sets:4,reps:"6-10",rir:"1"}),SS("db_row","face_pull",75),e("curl_hammer",{sets:2})],
+ jeu:[e("squat",{sets:4,reps:"4-8",rir:"1",tempo:"2-1-1",rest:180}),e("rdl",{sets:3,reps:"6-8",rir:"1"}),SS("leg_ext","leg_curl",90),e("calf",{sets:3})]},
+
+6:{note:"Spécialisation dos, sept semaines. Le tirage passe à trois séances par semaine : les tractions ouvrent le mardi, et un rowing haltère ferme le jeudi. Le push recule en volume et passe en maintenance. Ne cherche pas à progresser partout ce bloc.",
+ lun:[e("bench",{sets:3,reps:"6-10",rir:"2"}),e("incline_bb",{sets:3,reps:"6-10"}),SS("plurima_ohp","lat_raise",75),e("tri_overhead",{sets:2})],
+ mar:[e("pullup_weighted",{sets:4,reps:"5-8",rir:"1"}),e("bb_row",{sets:4,reps:"8-12"}),SS("db_row","face_pull",75),e("curl_hammer",{sets:3})],
+ jeu:[e("squat",{sets:3,reps:"6-10",rir:"2"}),e("rdl",{sets:3,reps:"8-12"}),SS("leg_ext","leg_curl",90),e("db_row",{sets:3,reps:"10-15",rir:"2",prog:"Troisième dose de dos de la semaine. Reste léger en RIR 2 : l'objectif est le volume, pas la performance."})]},
+
+7:{note:"Trois postes par séance, volume réduit d'environ 30 %, charges maintenues. Si tu fais le mini-cut à −400 kcal, c'est le volume qui baisse, jamais les charges. Semaine 52 : retest complet du couché, du squat et des tractions, puis nouveau cycle.",
+ lun:[e("bench",{sets:3,reps:"6-10",rir:"2"}),e("incline_bb",{sets:3,reps:"6-10"}),SS("plurima_ohp","lat_raise",75)],
+ mar:[e("pullup_weighted",{sets:3,reps:"5-8"}),e("bb_row",{sets:3,reps:"8-12"}),SS("db_row","face_pull",75)],
+ jeu:[e("squat",{sets:3,reps:"6-10",rir:"2"}),e("rdl",{sets:3,reps:"8-12"}),SS("leg_ext","leg_curl",90)]}
+};
+
+const BLOCKS=[
+{n:1,name:"Fondations & retest",w:[1,6],obj:"Finir les trois séances en entier. Push/Pull/Legs, 4 postes, 45 min.",rir:"3 → 2",color:"#5b9cf6"},
+{n:2,name:"Accumulation 1",w:[7,14],obj:"Une série de plus sur les gros mouvements, incliné barre, élastique plus fin.",rir:"2 → 1",color:"#4fd39c"},
+{n:3,name:"Intensification 1",w:[15,22],obj:"Charges hautes, fourchettes 4-8, repos à 3 min, accessoires allégés.",rir:"1 → 0 sur la dernière série",color:"#f0a63a"},
+{n:4,name:"Accumulation 2",w:[23,30],obj:"Reps hautes et techniques d'intensité pour le plafond des 18 kg.",rir:"2 → 1",color:"#4fd39c"},
+{n:5,name:"Intensification 2",w:[31,38],obj:"Charges hautes et premières tractions lestées à +5 kg.",rir:"1 → 0",color:"#f0a63a"},
+{n:6,name:"Spécialisation dos",w:[39,45],obj:"Tirage trois fois par semaine, push et jambes en maintenance.",rir:"2 → 1",color:"#b28cf5"},
+{n:7,name:"Mini-cut ou consolidation",w:[46,52],obj:"Trois postes, volume −30 %, charges maintenues. S52 : retest.",rir:"2",color:"#ff6b6b"}
+];
+const DELOADS=[6,14,22,30,38,45,52];
+
+const TARGETS=[
+["Développé couché","55 × 8","60 × 10","70 × 8","70 × 10","80 × 8","80 × 10","90 × 5"],
+["Squat","50 × 8","60 × 10","70 × 8","80 × 10","90 × 6","90 × 8","100 × 5"],
+["Rowing barre","50 × 10","55 × 10","65 × 8","65 × 12","75 × 8","75 × 12","85 × 6"],
+["Tractions strictes","total 11","5 d'affilée","4 × 5","4 × 8","+5 kg × 6","+10 kg × 5","+10 kg × 8"],
+["Incliné barre","40 × 8","45 × 10","55 × 8","55 × 10","65 × 8","65 × 10","75 × 5"],
+["Poids corporel","75 kg","76,5 kg","77,5 kg","79 kg","80 kg","81 kg","79-80 kg"]
+];
+
+/* ---------- État & stockage ---------- */
+const KEY='muscu_bloc1_v1';
+let state={view:'today',week:1,day:'lun',start:'2026-09-14',logs:{},refs:{},pinned:false};
+function curWeek(){const st=new Date(state.start+'T00:00:00');if(isNaN(st))return 1;
+  const w=Math.floor((new Date()-st)/(7*864e5))+1;return Math.min(52,Math.max(1,w));}
+function blockOf(w){return BLOCKS.find(b=>w>=b.w[0]&&w<=b.w[1])||BLOCKS[0];}
+function syncWeek(){if(!state.pinned)state.week=curWeek();}
+/* Hors artifact Claude (ex. GitHub Pages) : repli sur localStorage */
+if(!window.storage){try{const ls=window.localStorage;ls.setItem('__t','1');ls.removeItem('__t');window.storage={get:async k=>({value:ls.getItem(k)}),set:async(k,v)=>{ls.setItem(k,v);}};}catch(e){}}
+let hasStorage=false,saveT=null;
+async function load(){
+  if(!window.storage){return;}
+  hasStorage=true;
+  try{const r=await window.storage.get(KEY,false);if(r&&r.value){const s=JSON.parse(r.value);Object.assign(state,s);}}catch(e){}
+}
+function save(){
+  if(!hasStorage)return;
+  clearTimeout(saveT);
+  saveT=setTimeout(async()=>{try{await window.storage.set(KEY,JSON.stringify(state),false);setStatus('Sauvegardé');}catch(e){setStatus('Sauvegarde impossible : exporte en fin de séance');}},400);
+}
+function setStatus(t){const el=document.getElementById('status');if(el)el.textContent=t;}
+function lk(ex,i){return state.week+'|'+state.day+'|'+ex+'|'+i;}
+function getSet(ex,i){return state.logs[lk(ex,i)]||{};}
+function setField(ex,i,f,v){const k=lk(ex,i);state.logs[k]=Object.assign({},state.logs[k]||{},{[f]:v});save();}
+
+/* ---------- SVG ---------- */
+function fig(p){
+  let s='';
+  (p.l||[]).forEach(l=>s+=`<polyline points="${l.map(q=>q.join(',')).join(' ')}" class="fl"/>`);
+  (p.c||[]).forEach(c=>s+=`<circle cx="${c[0]}" cy="${c[1]}" r="${c[2]}" class="fh"/>`);
+  (p.b||[]).forEach(b=>s+=`<circle cx="${b[0]}" cy="${b[1]}" r="${b[2]||5}" class="fb"/>`);
+  (p.d||[]).forEach(d=>s+=`<polyline points="${d.map(q=>q.join(',')).join(' ')}" class="band"/>`);
+  if(p.a)s+=`<line x1="${p.a[0][0]}" y1="${p.a[0][1]}" x2="${p.a[1][0]}" y2="${p.a[1][1]}" class="arr" marker-end="url(#ah)"/>`;
+  return s;
+}
+function exSvg(e){
+  return `<svg viewBox="0 0 230 152" class="exsvg" role="img" aria-label="Schéma ${e.name}"><defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#f0a63a"/></marker></defs><g>${e.props||''}${fig(e.start)}</g><g transform="translate(120,0)">${e.props||''}${fig(e.end)}</g><line x1="115" y1="6" x2="115" y2="140" class="sep"/><text x="55" y="150" class="lbl">DÉPART</text><text x="175" y="150" class="lbl">ARRIVÉE</text></svg>`;
+}
+const MUS_FRONT=[
+["traps",'<polygon points="44,36 76,36 86,46 34,46"/>'],
+["delt",'<circle cx="34" cy="52" r="9"/><circle cx="86" cy="52" r="9"/>'],
+["chest",'<ellipse cx="48" cy="61" rx="12" ry="8"/><ellipse cx="72" cy="61" rx="12" ry="8"/>'],
+["biceps",'<rect x="23" y="61" width="11" height="24" rx="5"/><rect x="86" y="61" width="11" height="24" rx="5"/>'],
+["forearm",'<rect x="19" y="87" width="10" height="26" rx="5"/><rect x="91" y="87" width="10" height="26" rx="5"/>'],
+["abs",'<rect x="49" y="71" width="22" height="34" rx="5"/>'],
+["quads",'<rect x="42" y="108" width="16" height="46" rx="7"/><rect x="62" y="108" width="16" height="46" rx="7"/>']];
+const MUS_BACK=[
+["traps",'<polygon points="44,36 76,36 88,54 60,60 32,54"/>'],
+["reardelt",'<circle cx="34" cy="52" r="9"/><circle cx="86" cy="52" r="9"/>'],
+["lats",'<polygon points="36,66 84,66 72,98 48,98"/>'],
+["upperback",'<rect x="40" y="54" width="40" height="14" rx="5"/>'],
+["lowerback",'<rect x="50" y="98" width="20" height="12" rx="4"/>'],
+["triceps",'<rect x="23" y="61" width="11" height="24" rx="5"/><rect x="86" y="61" width="11" height="24" rx="5"/>'],
+["forearm",'<rect x="19" y="87" width="10" height="26" rx="5"/><rect x="91" y="87" width="10" height="26" rx="5"/>'],
+["glutes",'<ellipse cx="49" cy="118" rx="11" ry="9"/><ellipse cx="71" cy="118" rx="11" ry="9"/>'],
+["hams",'<rect x="42" y="128" width="16" height="36" rx="7"/><rect x="62" y="128" width="16" height="36" rx="7"/>'],
+["calves",'<rect x="44" y="166" width="12" height="30" rx="5"/><rect x="64" y="166" width="12" height="30" rx="5"/>']];
+function musSvg(m){
+  const cl=id=>m.p.includes(id)?'m p':(m.s.includes(id)?'m s':'m');
+  const body='<circle cx="60" cy="18" r="12" class="mo"/><rect x="55" y="29" width="10" height="7" class="mo"/><rect x="44" y="158" width="12" height="38" rx="5" class="mo"/><rect x="64" y="158" width="12" height="38" rx="5" class="mo"/>';
+  const f=MUS_FRONT.map(([id,sh])=>`<g class="${cl(id)}">${sh}</g>`).join('');
+  const b=MUS_BACK.map(([id,sh])=>`<g class="${cl(id)}">${sh}</g>`).join('');
+  return `<svg viewBox="0 0 260 208" class="mus" role="img" aria-label="Muscles travaillés"><g transform="translate(5,0)">${body}${f}<text x="60" y="206" class="lbl">AVANT</text></g><g transform="translate(135,0)"><circle cx="60" cy="18" r="12" class="mo"/><rect x="55" y="29" width="10" height="7" class="mo"/>${b}<text x="60" y="206" class="lbl">DOS</text></g></svg>`;
+}
+
+/* ---------- Vues ---------- */
+function go(v){state.view=v;save();render();}
+function render(){
+  syncWeek();
+  ['today','year','prog'].forEach(v=>document.getElementById('tab-'+v).classList.toggle('on',state.view===v));
+  const bh=blockOf(state.week);
+  document.getElementById('hd').textContent=`Semaine ${state.week} · bloc ${bh.n} — ${bh.name}`;
+  const el=document.getElementById('view');
+  el.innerHTML=state.view==='today'?vToday():state.view==='year'?vYear():vProg();
+  window.scrollTo(0,0);
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function presc(e){return `${e.sets} × ${e.reps} · RIR ${e.rir} · tempo ${e.tempo}`+(e.rest?` · repos ${fmt(e.rest)}`:'');}
+function fmt(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+
+let CUR={};
+function merged(it){
+  const ex=typeof it==='string'?it:it.ex;
+  const m=Object.assign({},EX[ex],typeof it==='string'?{}:it);
+  if(DELOADS.includes(state.week)){m.sets=Math.max(1,Math.ceil(m.sets/2));m.rir="4";m.deload=true;}
+  CUR[ex]=m;return m;
+}
+function setRows(ex){
+  const e=CUR[ex]||EX[ex];let h='';
+  if(e.band){const b=getSet(ex,'b');
+    h+=`<div class="bandrow"><label for="bd-${ex}">Élastique</label><input id="bd-${ex}" type="text" value="${esc(b.v??'')}" placeholder="ex. noir épais, 30-60 kg" oninput="setField('${ex}','b','v',this.value)"></div>`;}
+  h+=`<div class="sets"><div class="hd">#</div><div class="hd">${e.wl||'kg'}</div><div class="hd">reps</div><div class="hd">fait</div>`;
+  for(let i=0;i<e.sets;i++){
+    const s=getSet(ex,i);
+    h+=`<div class="sn">${i+1}</div>
+<input type="number" inputmode="decimal" placeholder="kg" value="${s.w??''}" oninput="setField('${ex}',${i},'w',this.value)" aria-label="charge série ${i+1}">
+<input type="number" inputmode="numeric" placeholder="reps" value="${s.r??''}" oninput="setField('${ex}',${i},'r',this.value)" aria-label="reps série ${i+1}">
+<button class="chk ${s.ok?'on':''}" onclick="toggle('${ex}',${i},this)" aria-label="série ${i+1} faite">${s.ok?'✓':''}</button>`;
+  }
+  return h+'</div>';
+}
+function toggle(ex,i,btn){const s=getSet(ex,i);setField(ex,i,'ok',!s.ok);btn.classList.toggle('on',!s.ok);btn.textContent=!s.ok?'✓':'';}
+
+function exCard(it,n){
+  const e=merged(it),ex=e.ex||(typeof it==='string'?it:it.ex);
+  return `<div class="exh"><div class="exn">${n?`<span class="num">${n}</span>`:''}${esc(e.name)}</div></div>
+<div class="presc">${presc(e)}${e.deload?' <span style="color:#4fd39c">· décharge</span>':''}</div>
+<div class="small">${esc(e.equip)}</div>
+<div class="btns"><button onclick="openEx('${ex}')">Fiche</button>${e.rest?`<button class="acc" onclick="startTimer(${e.rest},'${esc(e.name)}')">Repos ${fmt(e.rest)}</button>`:''}</div>
+${setRows(ex)}`;
+}
+function vToday(){
+  const s=SESS[state.day],b=blockOf(state.week);
+  let h=`<div class="days">${Object.keys(SESS).map(d=>`<button class="${state.day===d?'on':''}" onclick="state.day='${d}';save();render()">${SESS[d].label}<small>${SESS[d].sub}</small></button>`).join('')}</div>`;
+  let opts='';
+  BLOCKS.forEach(b=>{opts+=`<optgroup label="Bloc ${b.n} — ${b.name}">`;
+    for(let w=b.w[0];w<=b.w[1];w++)opts+=`<option value="${w}" ${state.week===w?'selected':''}>Semaine ${w}${w===1?' (retest)':''}${DELOADS.includes(w)?' (décharge)':''}</option>`;
+    opts+='</optgroup>';});
+  h+=`<div class="row"><label for="wk" class="small">Semaine</label><select id="wk" onchange="state.week=+this.value;state.pinned=true;save();render()">${opts}</select>${state.pinned&&state.week!==curWeek()?`<button onclick="state.pinned=false;syncWeek();save();render()">Auj.</button>`:''}</div>
+<div class="row"><span class="status" id="status">${hasStorage?'Sauvegarde automatique':'Pas de stockage : exporte en fin de séance'}</span></div>`;
+  const plan=PLAN[b.n],items=plan[state.day];
+  CUR={};
+  h+=`<div class="banner" style="border-color:${b.color}">Bloc ${b.n} — <b>${b.name}</b> · semaines ${b.w[0]} à ${b.w[1]} · RIR ${b.rir}${state.pinned&&state.week!==curWeek()?` · <b>semaine figée</b>, aujourd'hui c'est la ${curWeek()}`:''}</div>`;
+  h+=`<p class="info" style="margin-bottom:12px">${esc(plan.note)}</p>`;
+  if(state.week===1)h+=`<div class="banner">Semaine de retest : développé couché lundi, squat technique mardi (goblet + barre à vide), soulevé de terre jeudi. Le retest remplace les séries de travail du 1er exercice.</div>`;
+  if(DELOADS.includes(state.week))h+=`<div class="banner">Décharge : les séries sont déjà divisées par deux ci-dessous et le RIR passé à 4. Enlève 15 % de charge sur tout. Même durée, même ordre, tu sors frais.</div>`;
+  const nser=items.reduce((a,it)=>a+(it.ss?2:1),0);
+  h+=`<p class="info"><b>${s.label} — ${s.sub}, 45 min chrono.</b> ${esc(s.wu)}<br><b>Chrono :</b> ${items.length} postes, ${nser} exercices. Échauffement jusqu'à 4 min, puis environ ${Math.round(41/items.length)} min par poste. Tu dois avoir fini le poste 2 à la moitié du temps.</p>`;
+  let n=0;
+  items.forEach(it=>{
+    n++;
+    if(it.ss){h+=`<div class="card ss"><div class="sstitle">Superset : enchaîne A1 puis A2 sans repos, puis ${fmt(it.rest)} de repos</div><div>${exCard(it.ss[0],n+'·A1')}</div><hr style="border:0;border-top:1px solid var(--line);margin:12px 0"><div>${exCard(it.ss[1],n+'·A2')}</div></div>`;}
+    else{h+=`<div class="card">${exCard(it,n)}</div>`;}
+  });
+  h+=`<div class="card"><div class="exn">Fin de séance</div><p class="small">Ton texte à coller dans tes notes. Il reprend toutes les semaines saisies.</p><div class="btns"><button class="acc" onclick="exportTxt()">Copier le journal</button><button onclick="resetWeek()">Effacer cette séance</button></div><pre id="exp" style="display:none"></pre></div>`;
+  return h;
+}
+function resetWeek(){
+  if(!confirm('Effacer les saisies de la semaine '+state.week+' pour '+SESS[state.day].label+' ?'))return;
+  const pre=state.week+'|'+state.day+'|';
+  Object.keys(state.logs).forEach(k=>{if(k.startsWith(pre))delete state.logs[k];});
+  save();render();
+}
+function exportTxt(){
+  const lines=[];
+  const keys=Object.keys(state.logs).sort((a,b)=>{const A=a.split('|'),B=b.split('|');return (+A[0]-+B[0])||A[1].localeCompare(B[1])||A[2].localeCompare(B[2])||(+A[3]-+B[3]);});
+  const grp={};
+  const bands={};
+  keys.forEach(k=>{const [w,d,ex,i]=k.split('|');const g=w+'|'+d+'|'+ex;
+    if(i==='b'){bands[g]=state.logs[k].v;return;}
+    (grp[g]=grp[g]||[])[+i]=state.logs[k];});
+  Object.keys(grp).forEach(g=>{const [w,d,ex]=g.split('|');
+    const sets=grp[g].map(s=>s?`${s.w||'—'}×${s.r||'—'}${s.ok?'✓':''}`:'—');
+    lines.push(`S${w} ${SESS[d].label} – ${EX[ex].name}${bands[g]?` [élastique ${bands[g]}]`:''} : ${sets.join(', ')}`);});
+  if(state.refs&&Object.keys(state.refs).length)lines.push('Références : '+JSON.stringify(state.refs));
+  const txt=lines.join('\n')||'Aucune saisie.';
+  const pre=document.getElementById('exp');pre.style.display='block';pre.textContent=txt;
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(()=>setStatus('Journal copié')).catch(()=>{});}
+}
+
+function vYear(){
+  const cur=curWeek(),inYear=true,blk=blockOf;
+  let h=`<div class="row"><label for="st" class="small">Début (lundi)</label><input id="st" type="date" value="${state.start}" onchange="state.start=this.value;save();render()"></div>`;
+  h+=`<div class="banner">${inYear?`Semaine <b>${cur}</b> sur 52 — bloc ${blk(cur).n}, ${blk(cur).name}${DELOADS.includes(cur)?' — <b>décharge</b>':''}`:(cur<1?`Le programme démarre dans ${1-cur} semaine(s)`:'Année terminée : retest complet et nouveau cycle')}</div>`;
+  h+=`<div class="legend"><span><span class="sw" style="outline:2px dashed #fff;outline-offset:-2px;background:#555"></span> décharge</span><span><span class="sw" style="box-shadow:0 0 0 2px #fff;background:#555"></span> aujourd'hui</span></div><div class="yr">`;
+  for(let w=1;w<=52;w++){const b=blk(w);h+=`<div class="wk ${DELOADS.includes(w)?'dl':''} ${w===cur?'now':''}" style="background:${b.color}" title="Semaine ${w}">${w}</div>`;}
+  h+='</div>';
+  BLOCKS.forEach(b=>{h+=`<div class="blk" style="border-color:${b.color}"><b>Bloc ${b.n} — ${b.name}</b><div class="small">Semaines ${b.w[0]} à ${b.w[1]} · RIR ${b.rir} · décharge S${b.w[1]}</div><div style="font-size:16px;margin-top:4px">${b.obj}</div></div>`;});
+  return h;
+}
+
+function refIn(id,lab,ph){return `<div><div class="lab">${lab}</div><input type="text" placeholder="${ph}" value="${esc(state.refs[id]||'')}" oninput="state.refs['${id}']=this.value;save()"></div>`;}
+function vProg(){
+  let h=`<p class="info">Tes charges de référence après la semaine de retest. Tout le reste du bloc part de là.</p><div class="grid2">`;
+  h+=refIn('bench','Développé couché (kg × reps)','kg × reps')+refIn('squat','Squat (kg × reps)','kg × reps')+refIn('dl','Soulevé de terre (meilleur single)','kg')+refIn('pull','Tractions strictes (total 3 séries)','a+b+c')+refIn('bw','Poids du corps (kg, moy. semaine)','kg')+refIn('waist','Tour de taille au nombril (cm)','cm');
+  h+=`</div><h3>Paliers visés, bloc par bloc</h3><p class="small">Cibles indicatives : fin de bloc, dernière série de travail à RIR 1-2. Elles supposent que le poids monte (colonne du bas).</p><div style="overflow-x:auto"><table><tr><th>Mouvement</th>${BLOCKS.map(b=>`<th style="color:${b.color}">B${b.n}</th>`).join('')}</tr>`;
+  TARGETS.forEach(r=>{h+=`<tr><td><b>${r[0]}</b></td>${r.slice(1).map(c=>`<td>${c}</td>`).join('')}</tr>`;});
+  h+=`</table></div><h3>Règle d'or</h3><ul><li>Une charge ne monte que si toutes les séries ont atteint le haut de la fourchette au RIR demandé.</li><li>Quand +10 kg est trop lourd : 4e série à l'ancienne charge pendant 2 semaines, puis retente.</li><li>À 18 kg d'haltères : reps → tempo → pause → 1,5 reps → variante barre. Dans cet ordre.</li></ul>`;
+  return h;
+}
+
+/* ---------- Fiche exercice ---------- */
+function openEx(ex){
+  const e=CUR[ex]||EX[ex];
+  document.getElementById('mbody').innerHTML=`<div class="mh"><h2>${esc(e.name)}</h2><button class="acc" onclick="closeEx()">Fermer</button></div>
+${exSvg(e)}
+<div class="presc">${presc(e)}</div>
+<h3>Réglages du matériel</h3><ul>${e.setup.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+<h3>Exécution</h3><ul>${e.cues.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+<h3>Les 2 erreurs à traquer</h3><ul class="err">${e.errors.map(x=>`<li><b>${esc(x[0])}</b><br>${esc(x[1])}</li>`).join('')}</ul>
+<h3>Progression dans ce bloc</h3><p style="margin:0">${esc(e.prog)}</p>
+<h3>Muscles travaillés</h3>${musSvg(e.mus)}
+<div class="legend" style="margin-top:6px"><span><span class="sw" style="background:var(--acc)"></span> principal</span><span><span class="sw" style="background:#a86e26"></span> secondaire</span></div>
+${e.rest?`<div class="btns" style="margin-top:16px"><button class="acc" onclick="startTimer(${e.rest},'${esc(e.name)}');closeEx()">Lancer le repos ${fmt(e.rest)}</button></div>`:''}`;
+  document.getElementById('modal').classList.add('on');document.getElementById('modal').scrollTop=0;
+}
+function closeEx(){document.getElementById('modal').classList.remove('on');}
+
+/* ---------- Minuteur ---------- */
+let tEnd=0,tInt=null,tLabel='';
+function startTimer(sec,label){
+  tEnd=Date.now()+sec*1000;tLabel=label;
+  const box=document.getElementById('timer');box.classList.remove('done');box.classList.add('run');
+  document.getElementById('tl').textContent='Repos : '+label;
+  clearInterval(tInt);tick();tInt=setInterval(tick,250);
+}
+function addTimer(s){if(tEnd>Date.now()){tEnd+=s*1000;tick();}}
+function stopTimer(){clearInterval(tInt);tEnd=0;const box=document.getElementById('timer');box.classList.remove('run','done');document.getElementById('tt').textContent='—';document.getElementById('tl').textContent='Minuteur de repos';}
+function tick(){
+  const left=Math.max(0,Math.ceil((tEnd-Date.now())/1000));
+  document.getElementById('tt').textContent=fmt(left);
+  if(left<=0){clearInterval(tInt);const box=document.getElementById('timer');box.classList.remove('run');box.classList.add('done');document.getElementById('tl').textContent='Repos terminé : série suivante';
+    if(navigator.vibrate)navigator.vibrate([300,150,300]);beep();}
+}
+function beep(){try{const A=new (window.AudioContext||window.webkitAudioContext)();const o=A.createOscillator(),g=A.createGain();o.connect(g);g.connect(A.destination);o.frequency.value=880;g.gain.value=.15;o.start();o.stop(A.currentTime+.35);}catch(e){}}
+
+/* ---------- Démarrage ---------- */
+(async()=>{await load();state.view=state.view||'today';render();})();
+</script>
+</body>
+</html>
