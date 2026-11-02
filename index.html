@@ -74,12 +74,63 @@ main{max-width:var(--maxw);margin:0 auto;padding:var(--sp4) calc(var(--sar) + va
 .tabbar button{flex:1;background:none;border-radius:0;min-height:var(--tabbar-h);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:var(--fs-xs);font-weight:600;color:var(--tx3);padding:6px 0}
 .tabbar svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .tabbar button[aria-current=page]{color:var(--acc)}
-#timer{max-width:var(--maxw);margin:0 auto var(--sp2);padding:0 var(--sp3);display:flex;align-items:center;gap:var(--sp2)}
-#timer:not(.run):not(.done){display:none}
-#timer .t{flex:1;min-width:0;background:var(--s1);border:1px solid var(--line2);border-radius:var(--r3);padding:var(--sp2) var(--sp3);font-size:var(--fs-xl);font-weight:800;font-variant-numeric:tabular-nums}
-#timer .t small{display:block;font-size:var(--fs-xs);font-weight:600;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#timer.done .t{background:var(--acc);color:var(--on-acc)}#timer.done .t small{color:var(--on-acc)}
-
+/* Minuteur : pastille au repos, panneau pendant le repos */
+.tm{max-width:var(--maxw);margin:0 auto;padding:0 var(--sp3) var(--sp2)}
+.tm.none{display:none}
+.tm.idle{display:flex;justify-content:flex-start}
+.tpill{display:none;align-items:center;gap:var(--sp2);border-radius:var(--rf);background:var(--rest-bg);color:var(--rest);border:1px solid var(--rest);box-shadow:0 4px 16px rgba(0,0,0,.5)}
+.tm.idle .tpill{display:inline-flex}
+.tpanel{display:none;background:var(--s1);border:1px solid var(--line2);border-radius:var(--r4);padding:var(--sp3) var(--sp4);box-shadow:0 -8px 32px rgba(0,0,0,.55)}
+.tm.run .tpanel{display:block}
+.trow{display:flex;align-items:center;gap:var(--sp3)}
+.tdig{background:none;padding:0 var(--sp1);font-size:var(--fs-timer);font-weight:800;line-height:1;letter-spacing:-1px;min-width:3.6ch;text-align:left}
+.tinfo{flex:1;min-width:0}
+.tinfo b{display:block;font-size:var(--fs-s);color:var(--rest);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tinfo small{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:var(--fs-xs);color:var(--tx2);line-height:1.35;margin-top:2px}
+.tbar{height:8px;border-radius:4px;background:var(--s3);overflow:hidden;margin:var(--sp3) 0}
+.tbar i{display:block;height:100%;background:var(--rest);transform-origin:0 50%;will-change:transform}
+.tm.low .tbar i{background:var(--acc)}
+.tm.low .tdig,.tm.low .tinfo b{color:var(--acc)}
+.tbtns{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp2)}
+.tbtns button{padding:0;font-variant-numeric:tabular-nums}
+.tm.mini .tdig{font-size:var(--fs-xl);min-height:var(--tap)}
+.tm.mini .tbar{margin:var(--sp1) 0 0}
+.tm.mini .tbtns,.tm.mini .tinfo small{display:none}
+/* Alerte plein écran de fin de repos : pulsation lente (1 Hz, sous le seuil de 3 flashs/s) */
+#alarm{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;text-align:center;background:var(--acc);color:var(--on-acc);padding:calc(var(--sat) + 24px) var(--sp5) calc(var(--sab) + 24px)}
+#alarm[hidden]{display:none}
+#alarm::before{content:"";position:absolute;inset:0;background:#fff;opacity:0;animation:pulse 1s ease-in-out infinite}
+.al-in{position:relative}
+.al1{margin:0;font-size:52px;font-weight:900;line-height:1.05}
+.al2{margin:var(--sp4) 0 0;font-size:var(--fs-l);font-weight:700}
+.al3{margin:var(--sp2) 0 0;font-size:var(--fs-s);font-weight:600}
+#alOk{margin-top:var(--sp6);min-width:220px;min-height:64px;background:var(--on-acc);color:var(--acc);font-size:var(--fs-l)}
+@keyframes pulse{50%{opacity:.3}}
+/* Chrono de séance */
+.chrono{background:var(--s1);border:1px solid var(--line);border-radius:var(--r3);padding:var(--sp3) var(--sp4);margin-bottom:var(--sp3)}
+.crow{display:flex;align-items:center;gap:var(--sp3);flex-wrap:wrap}
+.cel b{font-size:var(--fs-xl);font-weight:800}
+.cel small{font-size:var(--fs-xs);color:var(--tx2);margin-left:4px}
+.pace{flex:1;min-width:0;font-size:var(--fs-xs);font-weight:700;color:var(--tx2)}
+.pace.ok{color:var(--ok)}.pace.bad{color:var(--bad)}
+.cbtn{background:var(--acc);color:var(--on-acc)}
+.ctrack{position:relative;height:12px;margin-top:var(--sp3);border-radius:6px;background:var(--s3);overflow:hidden}
+.cwu{position:absolute;left:0;top:0;bottom:0;background:repeating-linear-gradient(135deg,var(--s2) 0 4px,var(--s3) 4px 8px)}
+.ctick{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--bg)}
+.chalf{position:absolute;left:50%;top:-2px;bottom:-2px;width:2px;background:var(--tx2)}
+.cfill{position:absolute;inset:0;background:var(--blk);opacity:.85;transform-origin:0 50%;transform:scaleX(0);transition:transform var(--d3) var(--ease)}
+.cneedle{position:absolute;inset:0;transform:translateX(0)}
+.cneedle::before{content:"";position:absolute;left:-2px;top:0;bottom:0;width:4px;border-radius:2px;background:var(--tx)}
+.clab{display:flex;margin-top:var(--sp1);font-size:var(--fs-xs);color:var(--tx2);font-variant-numeric:tabular-nums}
+.clab span{text-align:center;white-space:nowrap;overflow:hidden}
+/* Interrupteur */
+.swrow{display:flex;align-items:center;gap:var(--sp3);min-height:var(--tap);margin-bottom:var(--sp2)}
+.swrow b{display:block;color:var(--tx)}.swrow small{display:block;font-size:var(--fs-xs)}
+.switch{-webkit-appearance:none;appearance:none;flex:none;position:relative;width:56px;min-height:32px;height:32px;padding:0;border-radius:var(--rf);background:var(--s3);border:0;cursor:pointer}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:var(--tx);transition:transform var(--d2) var(--spring)}
+.switch:checked{background:var(--ok)}
+.switch:checked::after{transform:translateX(24px)}
+.wub{margin-top:var(--sp2)}
 /* ========== Aujourd'hui ========== */
 .grow{flex:1;min-width:0}
 .ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
@@ -237,12 +288,22 @@ pre{white-space:pre-wrap;background:var(--s2);padding:10px;border-radius:10px;fo
   <section id="v-prog" class="view" aria-label="Progression" hidden></section>
 </main>
 <div id="dock">
-  <div id="timer" role="timer" aria-live="off"><div class="t"><span id="tt">—</span><small id="tl">Minuteur de repos</small></div><button onclick="stopTimer()">Stop</button><button id="tplus" onclick="addTimer(30)">+30 s</button></div>
+  <div id="timer" class="tm none" role="region" aria-label="Minuteur de repos">
+    <button class="tpill" id="tPill" onclick="pillTap()"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg><span id="tPillTxt">Repos</span></button>
+    <div class="tpanel">
+      <div class="trow"><button class="tdig tn" id="tDig" onclick="toggleMini()" aria-label="Temps restant, toucher pour réduire ou agrandir">0:00</button><div class="tinfo"><b id="tLab">Repos</b><small id="tNext"></small></div></div>
+      <div class="tbar" aria-hidden="true"><i id="tBar"></i></div>
+      <div class="tbtns"><button onclick="addTimer(-15)" aria-label="Retirer 15 secondes">−15 s</button><button onclick="addTimer(15)" aria-label="Ajouter 15 secondes">+15 s</button><button onclick="addTimer(30)" aria-label="Ajouter 30 secondes">+30 s</button><button class="acc" onclick="skipTimer()">Passer</button></div>
+    </div>
+  </div>
   <nav class="tabbar" aria-label="Sections">
     <button id="tab-today" onclick="go('today')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10h2v4H3zM19 10h2v4h-2zM6 7h3v10H6zM15 7h3v10h-3zM9 12h6"/></svg><span>Aujourd'hui</span></button>
     <button id="tab-year" onclick="go('year')"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>Plan</span></button>
     <button id="tab-prog" onclick="go('prog')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18M5 16l5-5 4 3 6-7"/></svg><span>Progression</span></button>
   </nav>
+</div>
+<div id="alarm" role="alertdialog" aria-modal="true" aria-labelledby="alT" aria-describedby="alNext" hidden onclick="hideAlarm()">
+  <div class="al-in"><p class="al1" id="alT">C'est reparti</p><p class="al2" id="alNext"></p><p class="al3" id="alAgo"></p><button id="alOk" onclick="hideAlarm()">OK, j'y vais</button></div>
 </div>
 <div id="modal"><div class="mw" id="mbody"></div></div>
 
@@ -571,24 +632,29 @@ const TARGETS=[
 
 /* ---------- État & stockage ---------- */
 const KEY='muscu_bloc1_v1';
-let state={view:'today',week:1,day:'lun',start:'2026-09-14',logs:{},refs:{},pinned:false};
+let state={view:'today',week:1,day:'lun',start:'2026-09-14',logs:{},refs:{},pinned:false,
+  autoRest:true,timer:null,sessions:{}}; /* champs ajoutés par la refonte, absents des anciennes sauvegardes */
 function curWeek(){const st=new Date(state.start+'T00:00:00');if(isNaN(st))return 1;
   const w=Math.floor((new Date()-st)/(7*864e5))+1;return Math.min(52,Math.max(1,w));}
 function blockOf(w){return BLOCKS.find(b=>w>=b.w[0]&&w<=b.w[1])||BLOCKS[0];}
 function syncWeek(){if(!state.pinned)state.week=curWeek();}
 /* Hors artifact Claude (ex. GitHub Pages) : repli sur localStorage */
 if(!window.storage){try{const ls=window.localStorage;ls.setItem('__t','1');ls.removeItem('__t');window.storage={get:async k=>({value:ls.getItem(k)}),set:async(k,v)=>{ls.setItem(k,v);}};}catch(e){}}
-let hasStorage=false,saveT=null;
+let hasStorage=false,saveT=null,dirty=false;
 async function load(){
   if(!window.storage){return;}
   hasStorage=true;
   try{const r=await window.storage.get(KEY,false);if(r&&r.value){const s=JSON.parse(r.value);Object.assign(state,s);}}catch(e){}
+  if(!state.sessions||typeof state.sessions!=='object')state.sessions={};if(typeof state.autoRest!=='boolean')state.autoRest=true;
 }
 function save(){
   if(!hasStorage)return;
-  clearTimeout(saveT);
-  saveT=setTimeout(async()=>{try{await window.storage.set(KEY,JSON.stringify(state),false);setStatus('Sauvegardé');}catch(e){setStatus('Sauvegarde impossible : exporte en fin de séance');}},400);
+  dirty=true;clearTimeout(saveT);
+  saveT=setTimeout(async()=>{dirty=false;try{await window.storage.set(KEY,JSON.stringify(state),false);setStatus('Sauvegardé');}catch(e){setStatus('Sauvegarde impossible : exporte en fin de séance');}},400);
 }
+/* Écriture immédiate : minuteur lancé, page masquée (iOS peut la recharger ensuite) */
+/* N'écrit que s'il y a eu une modification : une page mal chargée n'écrase jamais la sauvegarde */
+function saveNow(force){if(force)dirty=true;if(!hasStorage||!dirty)return;clearTimeout(saveT);dirty=false;try{window.storage.set(KEY,JSON.stringify(state),false);}catch(e){}}
 function setStatus(t){const el=document.getElementById('status');if(el)el.textContent=t;}
 function lk(ex,i){return state.week+'|'+state.day+'|'+ex+'|'+i;}
 function getSet(ex,i){return state.logs[lk(ex,i)]||{};}
@@ -651,7 +717,7 @@ function render(){
   const bh=blockOf(state.week);
   document.documentElement.style.setProperty('--blk',bh.color);
   $('v-'+state.view).innerHTML=state.view==='today'?vToday():state.view==='year'?vYear():vProg();
-  if(state.view==='today')afterToday();
+  if(state.view==='today')afterToday();else{MODEL=buildModel();updChrono();refreshPill();}
   renderHead();
 }
 function renderHead(){
@@ -763,11 +829,14 @@ ${pinned?`<button class="link" onclick="unpin()">Revenir à la semaine ${cw}</bu
 <div class="infos-in" id="infos-in" hidden>
 <p class="blkl"><i class="dot" aria-hidden="true"></i><span>Bloc ${b.n} — <b>${b.name}</b> · semaines ${b.w[0]} à ${b.w[1]} · RIR ${b.rir}${pinned?` · <b>semaine figée</b>, aujourd'hui c'est la ${cw}`:''}</span></p>
 <p>${esc(plan.note)}</p>
-<h4>Échauffement</h4><p>${esc(s.wu)}</p>
+<h4>Échauffement</h4><p>${esc(s.wu)}</p><button class="restbtn wub" onclick="startWu()">${ICON_T}Lancer l'échauffement ${wuMin(s)} min</button>
 <h4>Chrono</h4><p><b>${s.label} — ${s.sub}, 45 min chrono.</b> ${MODEL.length} postes, ${nser} exercices. Échauffement jusqu'à 4 min, puis environ ${per} min par poste. Tu dois avoir fini le poste 2 à la moitié du temps.</p>
 ${state.week===1?`<h4>Retest</h4><p>Semaine de retest : développé couché lundi, squat technique mardi (goblet + barre à vide), soulevé de terre jeudi. Le retest remplace les séries de travail du 1er exercice.</p>`:''}
 ${dl?`<h4>Décharge</h4><p>Décharge : les séries sont déjà divisées par deux ci-dessous et le RIR passé à 4. Enlève 15 % de charge sur tout. Même durée, même ordre, tu sors frais.</p>`:''}
+<h4>Minuteur</h4><label class="swrow"><span class="grow"><b>Repos automatique</b><small>Cocher une série lance le repos de l'exercice</small></span><input type="checkbox" role="switch" class="switch" ${state.autoRest?'checked':''} onchange="state.autoRest=this.checked;save()"></label>
+<p class="small" id="sndInfo">${sndInfo()}</p>
 </div></div>`;
+  h+=chronoHtml();
   h+=MODEL.map(posteHtml).join('');
   return h+recapHtml();
 }
@@ -836,8 +905,11 @@ function toggle(ex,i){
   setField(ex,i,'ok',on);
   if(row){row.classList.toggle('ok',on);row.querySelector('.chk').setAttribute('aria-pressed',on);}
   if(document.activeElement&&row&&row.contains(document.activeElement)&&document.activeElement.tagName==='INPUT')document.activeElement.blur();
+  if(on)sessionStart();
   const P=MODEL.find(P=>P.exs.some(m=>m.ex===ex));
   refreshPostes(on&&P?P.p:-1);
+  sessionCheckEnd();
+  if(on)autoRest(ex,i);
 }
 /* Met à jour les cartes (en cours / terminée), la série active, l'en-tête et le récap */
 function refreshPostes(justP){
@@ -846,7 +918,7 @@ function refreshPostes(justP){
     if(d&&P.p===justP)openP.delete(P.p);
     el.classList.toggle('done',d);el.classList.toggle('cur',P===cur);el.classList.toggle('open',d&&openP.has(P.p));
     const b=el.querySelector('.pdone');b.innerHTML=doneSummary(P);b.setAttribute('aria-expanded',openP.has(P.p));});
-  updAct();renderHead();updRecap();
+  updAct();renderHead();updChrono();refreshPill();
   if(justP>=0&&posteDone(MODEL[justP])){const t=cur?$('p-'+cur.p):$('recap');if(t)t.scrollIntoView({behavior:reduced()?'auto':'smooth',block:'start'});}
 }
 function toggleP(p){openP.has(p)?openP.delete(p):openP.add(p);refreshPostes(-1);}
@@ -859,9 +931,10 @@ function updRecap(){
   $('rcSets').textContent=p.done+'/'+p.total;
   $('rcVol').textContent=Math.round(vol).toLocaleString('fr-FR');
   $('recap').classList.toggle('complete',p.total>0&&p.done===p.total);
+  const s=sess();$('rcDur').textContent=s?fmtDur((s.t1||Math.min(Date.now(),s.t0+STALE))-s.t0):'—';
 }
 function afterToday(){refreshPostes(-1);}
-function startRest(p){const P=MODEL[p];startTimer(P.rest,P.exs.map(m=>m.name).join(' + '));}
+function startRest(p){const P=MODEL[p];sessionStart();startTimer(P.rest,P.exs.map(m=>m.name).join(' + '),nextLabel(P));}
 function setDay(d){
   if(d===state.day)return;
   state.day=d;save();openP.clear();
@@ -933,26 +1006,185 @@ ${e.rest?`<div class="btns" style="margin-top:16px"><button class="acc" onclick=
 }
 function closeEx(){document.getElementById('modal').classList.remove('on');}
 
-/* ---------- Minuteur ---------- */
-let tEnd=0,tInt=null,tLabel='';
-function startTimer(sec,label){
-  tEnd=Date.now()+sec*1000;tLabel=label;
-  const box=document.getElementById('timer');box.classList.remove('done');box.classList.add('run');
-  document.getElementById('tl').textContent='Repos : '+label;
-  clearInterval(tInt);tick();tInt=setInterval(tick,250);
+/* ---------- Minuteur de repos ---------- */
+/* state.timer = {end, dur, label, next, kind} : tout se recalcule depuis l'heure de fin, et survit à un rechargement */
+let tInt=null,lastSec=-1;
+function startTimer(sec,label,next,kind){
+  unlockAudio();
+  state.timer={end:Date.now()+sec*1000,dur:sec,label:label||'',next:next??nextLabel(),kind:kind||'rest'};
+  saveNow(1);hideAlarm();showTimer();
 }
-function addTimer(s){if(tEnd>Date.now()){tEnd+=s*1000;tick();}}
-function stopTimer(){clearInterval(tInt);tEnd=0;const box=document.getElementById('timer');box.classList.remove('run','done');document.getElementById('tt').textContent='—';document.getElementById('tl').textContent='Minuteur de repos';}
+function showTimer(){
+  const t=state.timer,box=$('timer');
+  box.classList.remove('idle','none','low');box.classList.add('run');
+  $('tLab').textContent=(t.kind==='wu'?'Échauffement':'Repos')+(t.label?' · '+t.label:'');
+  $('tNext').textContent=t.next?'Ensuite : '+t.next:'';
+  lastSec=-1;clearInterval(tInt);tInt=setInterval(tick,250);syncBar();tick();
+}
+/* La barre se vide en une seule transition CSS (transform), sans calcul à chaque image */
+function syncBar(){
+  const t=state.timer;if(!t)return;
+  const b=$('tBar'),left=Math.max(0,t.end-Date.now());
+  b.style.transition='none';b.style.transform=`scaleX(${Math.min(1,left/1000/t.dur)})`;
+  if(reduced())return;
+  b.getBoundingClientRect();
+  b.style.transition=`transform ${left}ms linear`;b.style.transform='scaleX(0)';
+}
 function tick(){
-  const left=Math.max(0,Math.ceil((tEnd-Date.now())/1000));
-  document.getElementById('tt').textContent=fmt(left);
-  if(left<=0){clearInterval(tInt);const box=document.getElementById('timer');box.classList.remove('run');box.classList.add('done');document.getElementById('tl').textContent='Repos terminé : série suivante';
-    if(navigator.vibrate)navigator.vibrate([300,150,300]);beep();}
+  const t=state.timer;if(!t)return;
+  const ms=t.end-Date.now(),s=Math.max(0,Math.ceil(ms/1000));
+  if(s!==lastSec){
+    const first=lastSec<0;lastSec=s;
+    $('tDig').textContent=fmt(s);
+    $('timer').classList.toggle('low',s<=10);
+    if(reduced())$('tBar').style.transform=`scaleX(${Math.min(1,Math.max(0,ms)/1000/t.dur)})`;
+    if(!first&&s>=1&&s<=3)beep(660,.12);
+  }
+  if(ms<=0)finishTimer();
 }
-function beep(){try{const A=new (window.AudioContext||window.webkitAudioContext)();const o=A.createOscillator(),g=A.createGain();o.connect(g);g.connect(A.destination);o.frequency.value=880;g.gain.value=.15;o.start();o.stop(A.currentTime+.35);}catch(e){}}
+function addTimer(d){
+  const t=state.timer;if(!t)return;
+  t.end=Math.max(Date.now()+1000,t.end+d*1000);t.dur=Math.max(t.dur,(t.end-Date.now())/1000);
+  saveNow(1);lastSec=-1;syncBar();tick();
+}
+function skipTimer(){stopTimer();}
+function stopTimer(){clearInterval(tInt);state.timer=null;saveNow(1);const box=$('timer');box.classList.remove('run','low','mini');refreshPill();}
+function finishTimer(){
+  const t=state.timer,ago=Date.now()-t.end;
+  stopTimer();
+  if(ago<3000){beep(880,.5);if(navigator.vibrate)navigator.vibrate([250,120,250]);}
+  if(ago<10*60e3)showAlarm(t,ago);
+}
+function toggleMini(){$('timer').classList.toggle('mini');}
+/* Pastille au repos : relance le repos du poste en cours */
+function refreshPill(){
+  const box=$('timer');if(state.timer)return;
+  const n=state.view==='today'&&MODEL.length&&nextSet(),P=n&&MODEL[n[0].p];
+  box.classList.toggle('idle',!!(P&&P.rest));box.classList.toggle('none',!(P&&P.rest));
+  if(P&&P.rest)$('tPillTxt').textContent='Repos '+fmt(P.rest);
+}
+function pillTap(){const n=nextSet();if(n)startRest(n[0].p);}
+/* Prochaine série : d'abord dans le poste en cours (A1 après A2 dans un superset), sinon dans la séance */
+function nextLabel(P){
+  const n=MODEL.length&&((P&&seqOf(P).find(([m,i])=>!getSet(m.ex,i).ok))||nextSet());if(!n)return '';
+  const [m,i]=n;return `${m.name} — série ${i+1}/${m.sets} · ${/^[\d-]+$/.test(m.reps)?m.reps+' reps':m.reps}`;
+}
+/* Repos automatique. Superset : rien entre A1 et A2, puis le repos du superset après A2 */
+function autoRest(ex,i){
+  if(!state.autoRest||!nextSet())return;
+  const P=MODEL.find(P=>P.exs.some(m=>m.ex===ex)),m=P.exs.find(m=>m.ex===ex);
+  let r=m.rest,lab=m.name;
+  if(P.ss){const a2=P.exs[1];if(m.k===0&&i<a2.sets&&!getSet(a2.ex,i).ok)return;r=P.rest;lab=P.exs.map(m=>m.name).join(' + ');}
+  if(r>0)startTimer(r,lab,nextLabel(P));
+}
+
+/* ---------- Alerte de fin de repos (plein écran : pas de vibration sur iPhone) ---------- */
+let alarmFrom=null;
+function showAlarm(t,ago){
+  const a=$('alarm');
+  $('alT').textContent=t.kind==='wu'?'Échauffement fini':"C'est reparti";
+  $('alNext').textContent=t.next||'Série suivante';
+  $('alAgo').textContent=ago>5000?`Repos terminé il y a ${fmt(Math.round(ago/1000))}`:'';
+  alarmFrom=document.activeElement;a.hidden=false;$('alOk').focus({preventScroll:true});
+}
+function hideAlarm(){const a=$('alarm');if(a.hidden)return;a.hidden=true;if(alarmFrom&&alarmFrom.focus)alarmFrom.focus({preventScroll:true});alarmFrom=null;}
+
+/* ---------- Son : un seul AudioContext, déverrouillé au premier geste ---------- */
+let AC=null,audioType=null;
+function unlockAudio(){
+  if(!AC){
+    const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
+    /* Type « ambient » : se mélange à la musique au lieu de la couper. On relit la valeur pour le vérifier. */
+    if(navigator.audioSession){try{navigator.audioSession.type='ambient';}catch(e){}audioType=navigator.audioSession.type;}
+    try{AC=new C();}catch(e){return;}
+    const s=AC.createBufferSource();s.buffer=AC.createBuffer(1,1,22050);s.connect(AC.destination);s.start(0);
+  }
+  if(AC.state!=='running')AC.resume().catch(()=>{});
+}
+['pointerdown','touchend','keydown'].forEach(ev=>addEventListener(ev,unlockAudio,{capture:true,passive:true}));
+function beep(f,d){
+  if(!AC||AC.state!=='running')return;
+  try{const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();
+    o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.3,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+d);
+    o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d+.05);}catch(e){}
+}
+function sndInfo(){
+  if(!('audioSession' in navigator))return "Son : ce navigateur ne permet pas de choisir la session audio. Les bips peuvent baisser ta musique ; l'alerte visuelle reste.";
+  if(audioType===null)return 'Son : se règle au premier tap.';
+  return audioType==='ambient'?'Son : bips mélangés à ta musique (session audio « ambient » confirmée). Muets si l\'iPhone est en mode silencieux.':`Son : session audio « ${audioType} », le mélange avec ta musique n'est pas garanti.`;
+}
+
+/* ---------- Chrono de séance ---------- */
+const sKey=()=>state.week+'|'+state.day;
+const sess=()=>state.sessions[sKey()];
+const STALE=3*36e5;
+const sessActive=()=>{const s=sess();return !!(s&&!s.t1&&Date.now()-s.t0<STALE);};
+function sessionStart(force){
+  if(!sess()||force||(!sess().t1&&!sessActive())){state.sessions[sKey()]={t0:Date.now()};saveNow(1);}
+  updChrono();wake();
+}
+/* Marque la fin quand toutes les séries sont cochées (et l'annule si on en décoche une) */
+function sessionCheckEnd(){
+  const s=sess();if(!s)return;const p=sessProgress(),end=p.total>0&&p.done===p.total;
+  if(end&&!s.t1){s.t1=Date.now();save();}else if(!end&&s.t1&&Date.now()-s.t0<STALE){delete s.t1;save();}
+  updChrono();wake();
+}
+const fmtDur=ms=>{const m=Math.round(ms/60000);return m<60?m+' min':Math.floor(m/60)+' h '+String(m%60).padStart(2,'0');};
+function chronoHtml(){
+  const per=41/MODEL.length,ticks=MODEL.map((P,k)=>`<i class="ctick" style="left:${(4+(k+1)*per)/45*100}%"></i>`).join('');
+  return `<div class="chrono" id="chrono"><div class="crow"><div class="cel"><b id="cEl" class="tn">0:00</b><small>/ 45 min</small></div><span class="pace" id="cPace"></span><button id="cBtn" class="cbtn" onclick="sessionStart(true)">Démarrer</button></div>
+<div class="ctrack" aria-hidden="true"><i class="cwu" style="width:${4/45*100}%"></i>${ticks}<i class="chalf"></i><i class="cfill" id="cFill"></i><i class="cneedle" id="cNeedle"></i></div>
+<div class="clab" aria-hidden="true"><span style="width:${4/45*100}%">éch.</span>${MODEL.map(P=>`<span style="width:${per/45*100}%">P${P.p+1}</span>`).join('')}</div></div>`;
+}
+let cInt=null;
+function updChrono(){
+  const el=$('chrono');
+  if(!el){clearInterval(cInt);cInt=null;return;}
+  const s=sess(),active=sessActive(),now=Date.now();
+  el.classList.toggle('on',!!s);
+  $('cBtn').hidden=active||!!(s&&s.t1);$('cBtn').textContent=s?'Redémarrer':'Démarrer';
+  if(active&&!cInt)cInt=setInterval(updChrono,1000);
+  if(!active&&cInt){clearInterval(cInt);cInt=null;}
+  if(!s){$('cEl').textContent='0:00';$('cPace').textContent='Démarre à la 1re série cochée';$('cPace').className='pace';$('cFill').style.transform='scaleX(0)';$('cNeedle').style.transform='translateX(0)';updRecap();return;}
+  const ms=(s.t1||Math.min(now,s.t0+STALE))-s.t0,min=ms/60000,per=41/MODEL.length;
+  let doneP=0;MODEL.forEach(P=>{const sq=seqOf(P);doneP+=sq.filter(([m,i])=>getSet(m.ex,i).ok).length/sq.length;});
+  const planned=4+doneP*per,delta=planned-min;
+  $('cEl').textContent=fmt(Math.floor(ms/1000));
+  $('cFill').style.transform=`scaleX(${Math.min(1,doneP?planned/45:0)})`;
+  $('cNeedle').style.transform=`translateX(${Math.min(100,min/45*100)}%)`;
+  let txt,cl='';
+  if(s.t1){txt='Terminé en '+fmtDur(ms);cl='ok';}
+  else if(!active){txt='Séance non terminée';}
+  else if(!doneP&&min<=4){txt='Échauffement';}
+  else{const pi=MODEL.findIndex(P=>!posteDone(P))+1,d=Math.round(Math.abs(delta));
+    txt=`Poste ${pi}/${MODEL.length} · `+(delta>=1?`en avance de ${d} min`:delta<=-1?`en retard de ${d} min`:'dans le temps');cl=delta<=-1?'bad':'ok';}
+  $('cPace').textContent=txt;$('cPace').className='pace '+cl;
+  updRecap();
+}
+
+/* ---------- Écran allumé pendant la séance ---------- */
+let wl=null;
+async function wake(){
+  if(!sessActive()){if(wl){wl.release().catch(()=>{});wl=null;}return;}
+  if(wl||!('wakeLock' in navigator)||document.visibilityState!=='visible')return;
+  try{wl=await navigator.wakeLock.request('screen');wl.addEventListener('release',()=>{wl=null;});}catch(e){}
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'){if(state.timer){lastSec=-1;syncBar();tick();}updChrono();wake();}
+  else saveNow();
+});
+addEventListener('pagehide',()=>saveNow());
+function startWu(){const s=SESS[state.day];sessionStart();startTimer(wuMin(s)*60,s.label+' · '+s.sub,nextLabel(),'wu');}
 
 /* ---------- Démarrage ---------- */
-(async()=>{await load();state.view=state.view||'today';render();})();
+(async()=>{
+  await load();state.view=state.view||'today';render();
+  /* Minuteur en cours avant un rechargement par iOS : on le reprend, ou on signale la fin */
+  const t=state.timer;
+  if(t&&t.end>Date.now())showTimer();else if(t){state.timer=null;save();if(Date.now()-t.end<10*60e3)showAlarm(t,Date.now()-t.end);}
+  wake();
+})();
+addEventListener('keydown',e=>{if(e.key==='Escape')hideAlarm();});
 </script>
 </body>
 </html>
