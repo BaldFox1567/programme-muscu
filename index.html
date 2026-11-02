@@ -242,10 +242,6 @@ main{max-width:var(--maxw);margin:0 auto;padding:var(--sp4) calc(var(--sar) + va
 .lbl{fill:#a9aeb7;font-size:9px;font-weight:700;text-anchor:middle;letter-spacing:1px}
 .mus .lbl{font-size:10px}
 .lev{stroke:#7b8494;stroke-width:2;fill:none}
-#modal{position:fixed;inset:0;background:var(--bg);z-index:40;overflow:auto;padding:calc(var(--sat) + var(--sp3)) var(--sp3) 40px;display:none}
-#modal.on{display:block}
-.mh{display:flex;justify-content:space-between;align-items:center;gap:10px;position:sticky;top:0;background:var(--bg);padding:4px 0 8px;z-index:2}
-.mw{max-width:var(--maxw);margin:0 auto}
 h2{font-size:var(--fs-xl);margin:0;line-height:1.15}
 h3{font-size:var(--fs-xs);letter-spacing:.5px;color:var(--acc);margin:var(--sp4) 0 6px;font-weight:800;text-transform:uppercase}
 ul{margin:0;padding-left:20px}li{margin-bottom:7px}
@@ -268,9 +264,44 @@ th{color:var(--tx2);font-weight:700;font-size:var(--fs-xs)}
 .lab{font-size:var(--fs-xs);color:var(--tx2);margin-bottom:3px}
 pre{white-space:pre-wrap;background:var(--s2);padding:10px;border-radius:10px;font-size:var(--fs-xs);margin:var(--sp2) 0 0}
 .status{font-size:var(--fs-xs);color:var(--tx2);margin-top:6px}
-.legend{display:flex;gap:var(--sp3);font-size:var(--fs-xs);color:var(--tx2);margin-bottom:6px;flex-wrap:wrap}
+.legend{display:flex;gap:var(--sp3);font-size:var(--fs-xs);color:var(--tx2);margin:6px 0;flex-wrap:wrap}
 .legend span{display:inline-flex;align-items:center;gap:5px}
 .sw{width:14px;height:14px;border-radius:3px;display:inline-block}
+/* ========== Feuilles, toasts, mouvement ========== */
+.sh{position:fixed;inset:0;z-index:50}
+.sh[hidden]{display:none}
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.62);opacity:0;transition:opacity var(--d3) var(--ease)}
+.panel{position:absolute;left:0;right:0;bottom:0;max-width:var(--maxw);margin:0 auto;max-height:calc(100% - var(--sat) - 20px);display:flex;flex-direction:column;background:var(--s1);border-radius:var(--r4) var(--r4) 0 0;box-shadow:0 -12px 40px rgba(0,0,0,.6);padding-bottom:var(--sab);transform:translateY(105%);transition:transform var(--d3) var(--ease);outline:0}
+.sh.open .scrim{opacity:1}
+.sh.open .panel{transform:none}
+.panel.drag{transition:none}
+.grab{padding:10px 0 2px;touch-action:none}
+.grab::before{content:"";display:block;width:40px;height:5px;border-radius:3px;background:var(--line2);margin:0 auto}
+.shhd{display:flex;align-items:center;gap:var(--sp3);padding:var(--sp1) var(--sp4) var(--sp3);touch-action:none;border-bottom:1px solid var(--line)}
+.shhd h2{flex:1;min-width:0}
+.shbd{overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:var(--sp3) var(--sp4) var(--sp5)}
+.shbd p{margin:0}
+#toasts{position:fixed;left:0;right:0;bottom:calc(var(--dock-h) + var(--sp2));z-index:45;display:flex;flex-direction:column;align-items:center;gap:var(--sp2);pointer-events:none;padding:0 var(--sp4)}
+.toast{pointer-events:auto;display:flex;align-items:center;gap:var(--sp3);max-width:var(--maxw);min-height:var(--tap);padding:0 var(--sp1) 0 var(--sp4);border-radius:var(--r3);background:var(--tx);color:var(--on-acc);font-size:var(--fs-s);font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.5);opacity:0;transform:translateY(16px);transition:opacity var(--d2) var(--ease),transform var(--d3) var(--spring)}
+.toast:not(:has(button)){padding-right:var(--sp4)}
+.toast.in{opacity:1;transform:none}
+.toast button{background:none;color:#8a4b00;min-height:44px;text-decoration:underline;text-underline-offset:3px}
+.chk.pop{animation:pop var(--d3) var(--spring)}
+.chk path{transition:stroke-dashoffset var(--d3) var(--ease) 60ms}
+@keyframes pop{0%{transform:scale(.82)}100%{transform:none}}
+.reveal{animation:rv var(--d3) var(--ease)}
+@keyframes rv{from{opacity:0;transform:translateY(-6px)}}
+#hProg.reveal,#recap.reveal{animation:pop 480ms var(--spring)}
+.recap.complete h2::after{content:" ✓";color:var(--ok)}
+.view.enter{animation:vin var(--d2) var(--ease)}
+@keyframes vin{from{opacity:0;transform:translateY(10px)}}
+@keyframes vout{to{opacity:0;transform:translateY(-6px)}}
+#top{view-transition-name:top}#dock{view-transition-name:dock}
+::view-transition-old(root){animation:vout var(--d1) ease-in both}
+::view-transition-new(root){animation:vin var(--d2) var(--ease) both}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after,::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation-duration:1ms!important;animation-iteration-count:1!important;transition-duration:1ms!important;transition-delay:0s!important;scroll-behavior:auto!important}
+}
 </style>
 </head>
 <body>
@@ -305,7 +336,15 @@ pre{white-space:pre-wrap;background:var(--s2);padding:10px;border-radius:10px;fo
 <div id="alarm" role="alertdialog" aria-modal="true" aria-labelledby="alT" aria-describedby="alNext" hidden onclick="hideAlarm()">
   <div class="al-in"><p class="al1" id="alT">C'est reparti</p><p class="al2" id="alNext"></p><p class="al3" id="alAgo"></p><button id="alOk" onclick="hideAlarm()">OK, j'y vais</button></div>
 </div>
-<div id="modal"><div class="mw" id="mbody"></div></div>
+<div id="toasts" role="status" aria-live="polite"></div>
+<div id="sheet" class="sh" hidden>
+  <div class="scrim" onclick="closeSheet()"></div>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="shT" tabindex="-1">
+    <div class="grab" aria-hidden="true"></div>
+    <div class="shhd"><h2 id="shT"></h2><button onclick="closeSheet()">Fermer</button></div>
+    <div class="shbd" id="shB"></div>
+  </div>
+</div>
 
 <script>
 /* ---------- Données ---------- */
@@ -650,7 +689,7 @@ async function load(){
 function save(){
   if(!hasStorage)return;
   dirty=true;clearTimeout(saveT);
-  saveT=setTimeout(async()=>{dirty=false;try{await window.storage.set(KEY,JSON.stringify(state),false);setStatus('Sauvegardé');}catch(e){setStatus('Sauvegarde impossible : exporte en fin de séance');}},400);
+  saveT=setTimeout(async()=>{dirty=false;try{await window.storage.set(KEY,JSON.stringify(state),false);setStatus('Sauvegardé');}catch(e){setStatus('Sauvegarde impossible');toast('Sauvegarde impossible : exporte en fin de séance',null,null,5000);}},400);
 }
 /* Écriture immédiate : minuteur lancé, page masquée (iOS peut la recharger ensuite) */
 /* N'écrit que s'il y a eu une modification : une page mal chargée n'écrase jamais la sauvegarde */
@@ -706,8 +745,11 @@ const $=id=>document.getElementById(id);
 function go(v){
   if(v===state.view){window.scrollTo({top:0,behavior:'smooth'});return;}
   scrollY0[state.view]=window.scrollY;
-  state.view=v;save();render();
-  window.scrollTo(0,scrollY0[v]||0);
+  const swap=()=>{state.view=v;save();render();window.scrollTo(0,scrollY0[v]||0);};
+  if(reduced())return swap();
+  /* View Transitions si disponible, sinon fondu glissé CSS */
+  if(document.startViewTransition)return document.startViewTransition(swap);
+  swap();const el=$('v-'+v);el.classList.remove('enter');el.getBoundingClientRect();el.classList.add('enter');
 }
 /* Rendu complet de la vue active : seulement à la navigation ou au changement de jour/semaine */
 function render(){
@@ -903,7 +945,7 @@ function toggle(ex,i){
   if(on&&row){/* cocher une série vide reprend la charge indiquée */
     const w=$('w-'+ex+'-'+i);if(!w.value&&numv(w.placeholder)!=null){w.value=w.placeholder;setField(ex,i,'w',w.placeholder.replace(',','.'));refreshPh(ex,i);}}
   setField(ex,i,'ok',on);
-  if(row){row.classList.toggle('ok',on);row.querySelector('.chk').setAttribute('aria-pressed',on);}
+  if(row){row.classList.toggle('ok',on);const c=row.querySelector('.chk');c.setAttribute('aria-pressed',on);if(on){c.classList.remove('pop');c.getBoundingClientRect();c.classList.add('pop');}}
   if(document.activeElement&&row&&row.contains(document.activeElement)&&document.activeElement.tagName==='INPUT')document.activeElement.blur();
   if(on)sessionStart();
   const P=MODEL.find(P=>P.exs.some(m=>m.ex===ex));
@@ -913,16 +955,18 @@ function toggle(ex,i){
 }
 /* Met à jour les cartes (en cours / terminée), la série active, l'en-tête et le récap */
 function refreshPostes(justP){
-  const cur=MODEL.find(P=>!posteDone(P));
-  MODEL.forEach(P=>{const el=$('p-'+P.p);if(!el)return;const d=posteDone(P);
+  const cur=MODEL.find(P=>!posteDone(P)),opened=[];
+  flip(()=>MODEL.forEach(P=>{const el=$('p-'+P.p);if(!el)return;const d=posteDone(P);
     if(d&&P.p===justP)openP.delete(P.p);
-    el.classList.toggle('done',d);el.classList.toggle('cur',P===cur);el.classList.toggle('open',d&&openP.has(P.p));
-    const b=el.querySelector('.pdone');b.innerHTML=doneSummary(P);b.setAttribute('aria-expanded',openP.has(P.p));});
+    const o=d&&openP.has(P.p);if(o&&!el.classList.contains('open'))opened.push(el.querySelector('.pbody'));
+    el.classList.toggle('done',d);el.classList.toggle('cur',P===cur);el.classList.toggle('open',o);
+    const b=el.querySelector('.pdone');b.innerHTML=doneSummary(P);b.setAttribute('aria-expanded',openP.has(P.p));}));
+  opened.forEach(reveal);
   updAct();renderHead();updChrono();refreshPill();
   if(justP>=0&&posteDone(MODEL[justP])){const t=cur?$('p-'+cur.p):$('recap');if(t)t.scrollIntoView({behavior:reduced()?'auto':'smooth',block:'start'});}
 }
 function toggleP(p){openP.has(p)?openP.delete(p):openP.add(p);refreshPostes(-1);}
-function toggleInfos(){const b=$('infosBtn'),o=b.getAttribute('aria-expanded')!=='true';b.setAttribute('aria-expanded',o);$('infos-in').hidden=!o;}
+function toggleInfos(){const b=$('infosBtn'),o=b.getAttribute('aria-expanded')!=='true';b.setAttribute('aria-expanded',o);$('sndInfo').textContent=sndInfo();flip(()=>{$('infos-in').hidden=!o;});if(o)reveal($('infos-in'));}
 const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 function updRecap(){
   if(!$('recap'))return;
@@ -946,10 +990,14 @@ function setDay(d){
 function setWeek(w){state.week=w;state.pinned=true;save();openP.clear();render();}
 function unpin(){state.pinned=false;syncWeek();save();openP.clear();render();}
 function resetWeek(){
-  if(!confirm('Effacer les saisies de la semaine '+state.week+' pour '+SESS[state.day].label+' ?'))return;
-  const pre=state.week+'|'+state.day+'|';
-  Object.keys(state.logs).forEach(k=>{if(k.startsWith(pre))delete state.logs[k];});
-  save();openP.clear();render();
+  openSheet('Effacer cette séance ?',`<p>Les saisies de la semaine ${state.week} pour ${SESS[state.day].label} seront effacées. Tu pourras annuler pendant 5 secondes.</p><div class="btns"><button onclick="closeSheet()">Garder</button><button class="danger" onclick="doReset()">Effacer</button></div>`);
+}
+function doReset(){
+  const pre=state.week+'|'+state.day+'|',k0=sKey(),logs={},ses=state.sessions[k0];
+  Object.keys(state.logs).forEach(k=>{if(k.startsWith(pre)){logs[k]=state.logs[k];delete state.logs[k];}});
+  delete state.sessions[k0];
+  closeSheet();save();openP.clear();render();
+  toast('Séance effacée','Annuler',()=>{Object.assign(state.logs,logs);if(ses)state.sessions[k0]=ses;save();render();},5000);
 }
 function exportTxt(){
   const lines=[];
@@ -965,7 +1013,8 @@ function exportTxt(){
   if(state.refs&&Object.keys(state.refs).length)lines.push('Références : '+JSON.stringify(state.refs));
   const txt=lines.join('\n')||'Aucune saisie.';
   const pre=document.getElementById('exp');pre.hidden=false;pre.textContent=txt;
-  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(()=>setStatus('Journal copié')).catch(()=>{});}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(()=>toast('Journal copié')).catch(()=>toast('Copie impossible : sélectionne le texte ci-dessous'));}
+  pre.scrollIntoView({behavior:reduced()?'auto':'smooth',block:'nearest'});
 }
 
 function vYear(){
@@ -989,22 +1038,80 @@ function vProg(){
   return h;
 }
 
-/* ---------- Fiche exercice ---------- */
+/* ---------- Fiche exercice (feuille glissante) ---------- */
 function openEx(ex){
   const e=CUR[ex]||EX[ex];
-  document.getElementById('mbody').innerHTML=`<div class="mh"><h2>${esc(e.name)}</h2><button class="acc" onclick="closeEx()">Fermer</button></div>
-${exSvg(e)}
-<div class="presc">${presc(e)}</div>
+  openSheet(e.name,`${exSvg(e)}
+<ul class="pills">${[e.sets+' × '+e.reps,'RIR '+e.rir,'tempo '+e.tempo].map(x=>`<li>${esc(x)}</li>`).join('')}${e.rest?`<li class="prest">repos ${fmt(e.rest)}</li>`:''}</ul>
 <h3>Réglages du matériel</h3><ul>${e.setup.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
 <h3>Exécution</h3><ul>${e.cues.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
 <h3>Les 2 erreurs à traquer</h3><ul class="err">${e.errors.map(x=>`<li><b>${esc(x[0])}</b><br>${esc(x[1])}</li>`).join('')}</ul>
 <h3>Progression dans ce bloc</h3><p style="margin:0">${esc(e.prog)}</p>
 <h3>Muscles travaillés</h3>${musSvg(e.mus)}
-<div class="legend" style="margin-top:6px"><span><span class="sw" style="background:var(--acc)"></span> principal</span><span><span class="sw" style="background:#a86e26"></span> secondaire</span></div>
-${e.rest?`<div class="btns" style="margin-top:16px"><button class="acc" onclick="startTimer(${e.rest},'${esc(e.name)}');closeEx()">Lancer le repos ${fmt(e.rest)}</button></div>`:''}`;
-  document.getElementById('modal').classList.add('on');document.getElementById('modal').scrollTop=0;
+<div class="legend"><span><span class="sw" style="background:var(--acc)"></span> principal</span><span><span class="sw" style="background:#a86e26"></span> secondaire</span></div>
+${e.rest?`<div class="btns"><button class="acc" onclick="closeSheet();startTimer(${e.rest},'${esc(e.name)}')">Lancer le repos ${fmt(e.rest)}</button></div>`:''}`);
 }
-function closeEx(){document.getElementById('modal').classList.remove('on');}
+/* Feuille générique : monte depuis le bas, se ferme au bouton, à Échap, au fond ou en glissant vers le bas */
+let shFrom=null;
+const shPanel=()=>document.querySelector('#sheet .panel');
+function openSheet(title,html){
+  const sh=$('sheet');
+  if(sh.hidden)shFrom=document.activeElement;
+  $('shT').textContent=title;$('shB').innerHTML=html;$('shB').scrollTop=0;
+  sh.hidden=false;['top','view','dock'].forEach(id=>$(id).inert=true);
+  sh.getBoundingClientRect();sh.classList.add('open');
+  shPanel().focus({preventScroll:true});
+}
+function closeSheet(){
+  const sh=$('sheet');if(sh.hidden||!sh.classList.contains('open'))return;
+  shPanel().style.transform='';sh.classList.remove('open');
+  ['top','view','dock'].forEach(id=>$(id).inert=false);
+  setTimeout(()=>{if(!sh.classList.contains('open')){sh.hidden=true;$('shB').innerHTML='';}},reduced()?0:320);
+  if(shFrom&&shFrom.isConnected)shFrom.focus({preventScroll:true});shFrom=null;
+}
+(()=>{/* Glisser vers le bas depuis la poignée ou l'en-tête */
+  const p=shPanel();let y0=null,dy=0,t0=0;
+  p.addEventListener('pointerdown',e=>{if(!e.target.closest('.grab,.shhd')||e.target.closest('button'))return;y0=e.clientY;t0=e.timeStamp;dy=0;p.classList.add('drag');p.setPointerCapture(e.pointerId);});
+  p.addEventListener('pointermove',e=>{if(y0===null)return;dy=Math.max(0,e.clientY-y0);p.style.transform=`translateY(${dy}px)`;});
+  const end=e=>{if(y0===null)return;p.classList.remove('drag');y0=null;if(dy>110||dy/Math.max(1,e.timeStamp-t0)>.6)closeSheet();else p.style.transform='';};
+  p.addEventListener('pointerup',end);p.addEventListener('pointercancel',end);
+})();
+addEventListener('keydown',e=>{
+  if(e.key==='Escape'){if(!$('alarm').hidden)hideAlarm();else closeSheet();return;}
+  const sh=$('sheet');if(e.key!=='Tab'||sh.hidden)return;
+  /* Le focus reste piégé dans la feuille */
+  const f=[...sh.querySelectorAll('button,input,select,[href]')].filter(x=>!x.disabled&&x.offsetParent);if(!f.length)return;
+  const a=f[0],z=f[f.length-1],cur=document.activeElement;
+  if(e.shiftKey&&(cur===a||cur===shPanel())){e.preventDefault();z.focus();}
+  else if(!e.shiftKey&&(cur===z||!sh.contains(cur))){e.preventDefault();a.focus();}
+});
+
+/* ---------- Toasts ---------- */
+function toast(msg,act,fn,ms){
+  const t=document.createElement('div');t.className='toast';t.innerHTML=`<span>${esc(msg)}</span>`;
+  const kill=()=>{clearTimeout(k);t.classList.remove('in');setTimeout(()=>t.remove(),reduced()?0:320);};
+  if(act){const b=document.createElement('button');b.textContent=act;b.onclick=()=>{fn();kill();};t.append(b);}
+  $('toasts').append(t);t.getBoundingClientRect();t.classList.add('in');
+  const k=setTimeout(kill,ms||2500);
+}
+
+/* ---------- Animations utilitaires ---------- */
+/* FLIP : les éléments qui suivent glissent vers leur nouvelle place (transform seulement) */
+function flip(mutate){
+  const els=[...document.querySelectorAll('#tBody>*')];
+  if(reduced()||!els.length){mutate();return;}
+  const y=els.map(e=>e.getBoundingClientRect().top);
+  mutate();
+  els.forEach((e,k)=>{const d=y[k]-e.getBoundingClientRect().top;if(Math.abs(d)<1)return;
+    e.style.transition='none';e.style.transform=`translateY(${d}px)`;e.getBoundingClientRect();
+    e.style.transition='transform var(--d3) var(--ease)';e.style.transform='';
+    setTimeout(()=>{e.style.transition='';},340);});
+}
+function reveal(el){if(!el||reduced())return;el.classList.remove('reveal');el.getBoundingClientRect();el.classList.add('reveal');}
+function celebrate(){
+  ['hProg','recap'].forEach(id=>{const el=$(id);if(el)reveal(el);});
+  toast('Séance terminée et sauvegardée');
+}
 
 /* ---------- Minuteur de repos ---------- */
 /* state.timer = {end, dur, label, next, kind} : tout se recalcule depuis l'heure de fin, et survit à un rechargement */
@@ -1126,7 +1233,7 @@ function sessionStart(force){
 /* Marque la fin quand toutes les séries sont cochées (et l'annule si on en décoche une) */
 function sessionCheckEnd(){
   const s=sess();if(!s)return;const p=sessProgress(),end=p.total>0&&p.done===p.total;
-  if(end&&!s.t1){s.t1=Date.now();save();}else if(!end&&s.t1&&Date.now()-s.t0<STALE){delete s.t1;save();}
+  if(end&&!s.t1){s.t1=Date.now();save();celebrate();}else if(!end&&s.t1&&Date.now()-s.t0<STALE){delete s.t1;save();}
   updChrono();wake();
 }
 const fmtDur=ms=>{const m=Math.round(ms/60000);return m<60?m+' min':Math.floor(m/60)+' h '+String(m%60).padStart(2,'0');};
@@ -1184,7 +1291,7 @@ function startWu(){const s=SESS[state.day];sessionStart();startTimer(wuMin(s)*60
   if(t&&t.end>Date.now())showTimer();else if(t){state.timer=null;save();if(Date.now()-t.end<10*60e3)showAlarm(t,Date.now()-t.end);}
   wake();
 })();
-addEventListener('keydown',e=>{if(e.key==='Escape')hideAlarm();});
+
 </script>
 </body>
 </html>
