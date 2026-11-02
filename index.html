@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Muscu">
-<meta name="format-detection" content="telephone=no">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
 <title>Muscu — programme 12 mois</title>
 <link rel="apple-touch-icon" sizes="180x180" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAAFSklEQVR42u3dO29URxiH8fkGju29ee8X75rg9UYyFoIUmAJX1JZMRe8mFHwCS1u4WcMXQKJJzaVaaNO6cGVRUFG5S5c2Wh8pivDs4Z05+/rMsI/0K0fK+b88GKhiulu/AVaGE4A44BPHCLAy3cEIsDKdwQiwIg4QB4gDxIFbimMHsCIOpMTR3wGsiAPz42j3dwAr4gBxwCuOIWBFHCAOEAcWGsfmELAiDqTFsQ1YmdbmNmBFHCAOEAeIA7cTR28bsDKt3l3AijhAHPCIo9m7C1gRB4gDxIGFxtH9FbAiDhAHiAPEAeJAvnE0uncAK+JAShydO4BVQHE8fzr6PL7/95+/3/R5fP/509HPcfGIZoYSx9uX96z3+r+3L+/FXkZcM00gv5l+eLJE1D8/opsZRBzzfsxaf/DGG0d0M02js5U74ckSIXzwkswkDmbOj6Pe2cqd09VC+OAlmWnq7a3cuV0tgA9ekpnEwUziYCZxEMdi4xjkzvFqg0hFN5M4mEkczAwtjoP9vY+vj/7564/vfHx9dLC/RxySmcIb6sTRGig5eLR39en45qrE1afjg0d7yUu3q6l9sDaPmfIbajC11kDJh1dH81YlPrw6Sl46XU3vg7V5zJTfUIOptfpK0lclkpeOV+tHymOm/IYaiIM4iIM4iIM4iIM4iIM4iIM4Qo2jualENOz6pdvV1D5Ym8dM+Q01mGpzU4lkWPLS6Wp6H6zNY6b8hhqIgziIgziIgziIgziIgzjyjqOnRDZs9tLxar1IecyU31CDqTZ6SkTDrl+6XU3tg7V5zJTfUANxEAdxEIdHHBuNnhLJsOSl09X0Plibx0z5DTUQB3GkxdFVIhs2e+l4tW6kPGbKb6iBOIiDOIjDJ456N4vx6dn5xeWXr99ukgxLXjpdzfrfioLHTPkNv3N+cTk+Pcv4i2sylpFyC+LIMY5Exj4yxTHvZwZxBBLH+cVlbnGk34I4co/jy9dvmeKo1DveiCP8OLL8+maKgz9Wwv9jJbc4xqcT4gj7L6ST3OJI+uCfsqH+U3aS8RfXVGodJZJhyUunq+l9sDaPmfIbaiAO4iAO4vCKo61ENmz20vFq7Uh5zJTfUANxEAdxEIdHHOVaW4lkWPLS6Wp6H6zNY6b8hhqIgzhS4qi2lYiGXb90u5raB2vzmCm/oQZTrraUyIbNXjperRUpj5nyG2ogDuIgDuIgDuIgDuIgDuLIN45StaVEMix56XQ1vQ/W5jFTfkMNplRtKpENm710vFozUh4z5TfUYEobTSWiYdcv3a6m9sHaPGbKb6iBOIiDOIiDOIiDOIiDOIgj7zgaSt6fHaaven92mLx0vFojUh4z5TfUoBjH44fDq+n8/2Hu9PjxwyFxpM+U31AljmKloWf/wfDdxNL+u8nh/oPhf8+crqb6war8ZgpvqMHEe7UliSNHxMFM4mCmVxz13DlerR6p6GYSBzOJg5nEQRwLjaNcz53b1QL44CWZaQrleu6crhbCBy/JTOJgZloctdxNT3aFJ5ue7IbwwUsyM4g4nj3pC6/27Ek/3jiim2kCOdybF6MfnuzNi1G8ZcQ40wT1G2veD97pyW7UPzMinWl+jotDJ45SDbAiDsyPY71UBayIA8QB4gBxgDiQcxzFDcCKOEAcIA4sMo614gZgRRwgDnjFUQGszFqhAlgRB4gDxAHiwK3EsVqoAFZmtVAGrIgDxAGfONbLgBVxgDjgFUcJsCIOEAc84vhlvQRYEQdS4lgrAVbEgbQ4ioAVcYA4QBwgDtxKHCtrRcDKrKwWASuzsloArIgDxAF3/wJS+qEGl8w0TQAAAABJRU5ErkJggg==">
 <script>/* Même image en favicon, sans la dupliquer ni requêter /favicon.ico */
@@ -44,6 +44,9 @@
 html{background:var(--bg);-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--tx);font:var(--fs-m)/1.4 -apple-system,BlinkMacSystemFont,system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
 button,input,select{font:inherit;color:inherit}
+/* Pas de détection iOS des heures (« 2:30 » ouvrait Calendrier) ni de menu d'appui long sur les chiffres */
+a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important;pointer-events:none}
+.tdig,.tm,.chrono,.pills,.flow,.last,.stats,.restbtn{-webkit-touch-callout:none}
 button{cursor:pointer;border:0;border-radius:var(--r2);background:var(--s2);min-height:var(--tap);padding:0 var(--sp4);font-weight:700;touch-action:manipulation;transition:transform var(--d1) var(--ease)}
 button:active{transform:scale(.96)}
 :focus-visible{outline:3px solid var(--acc2);outline-offset:2px}
