@@ -460,7 +460,7 @@ lat_raise:{name:"Élévations latérales haltères",equip:"Haltères 6 à 10 kg"
  setup:["Debout, ou assis sur le banc réglé à 80° si tu triches avec le buste.","Départ à 6-8 kg, pas 14. Coudes très légèrement fléchis, paumes vers le sol."],
  cues:["Ce sont les coudes qui montent, pas les mains.","Arrête à hauteur d'épaule, 1 s de pause, redescends en 2 s.","Épaules basses, pas de haussement."],
  errors:[["Élan des hanches.","Tu le sens quand le buste « pousse » l'haltère au départ : charge trop lourde."],["Haussement des trapèzes.","Tu le sens quand ça tire dans le cou et pas sur le côté de l'épaule."]],
- prog:"Superset A1 avec le curl marteau (A2), 60 s de repos après A2. 12→20 reps puis +2 kg.",
+ prog:"Superset A2 après le développé (incliné ou épaules), 75 s de repos après les élévations. 12→20 reps puis +2 kg.",
  mus:{p:["delt"],s:["traps"]},
  props:FLOOR,
  start:{c:[[55,18,7]],l:[[[55,26],[55,80]],[[38,32],[72,32]],[[45,80],[65,80]],[[45,80],[44,140]],[[65,80],[66,140]],[[38,32],[34,58],[34,84]],[[72,32],[76,58],[76,84]]],b:[[34,88,5],[76,88,5]],a:[[88,80],[100,44]]},
@@ -533,11 +533,11 @@ bulgarian:{name:"Fente bulgare haltères",equip:"Banc plat + haltères",
  end:{c:[[70,52,7]],l:[[[68,60],[56,104]],[[56,104],[80,106],[62,140]],[[62,140],[76,140]],[[56,104],[36,126],[16,96]],[[68,60],[70,90],[70,116]]],b:[[70,118,5]]}},
 
 calf:{name:"Mollets debout unilatéral",equip:"Disque de 20 kg à plat + haltère 18 kg, main libre sur le rack",
- sets:3,reps:"12-20 / jambe",rir:"1",tempo:"2-1-1-1",rest:0,
+ sets:3,reps:"12-20 / jambe",rir:"1",tempo:"2-1-1-1",rest:60,
  setup:["Avant-pied sur un disque de 20 kg posé à plat (ou la marche du Skillrun arrêté).","Haltère dans la main du côté qui travaille, l'autre main sur le montant du rack.","Genou tendu toute la série."],
  cues:["Talon 2 s vers le bas sous le niveau du disque, pause 1 s en bas.","Monte sur la pointe, pause 1 s en haut.","Pas de rebond."],
  errors:[["Rebond en bas.","Tu le sens quand le rythme accélère et que le tendon « ressort » tout seul."],["Genou qui plie.","Tu le sens quand le mollet ne brûle jamais."]],
- prog:"Superset C1 avec les relevés de jambes (C2), 60 s après C2. 12→20 reps ; ensuite descente en 4 s.",
+ prog:"En superset C1 avec les relevés de jambes (C2) quand ils sont au programme, 60 s après C2 ; seuls, 60 s entre les séries. 12→20 reps ; ensuite descente en 4 s.",
  mus:{p:["calves"],s:[]},
  props:'<rect x="40" y="130" width="30" height="10" rx="2" class="p"/>'+FLOOR,
  start:{c:[[55,18,7]],l:[[[55,26],[54,80]],[[54,80],[55,110],[55,140]],[[46,142],[66,130]],[[55,26],[58,58],[60,90]]],b:[[60,92,5]],a:[[80,104],[80,74]]},
@@ -589,11 +589,11 @@ db_row:{name:"Rowing haltère unilatéral",equip:"Banc plat + haltère 18 kg",
  end:{c:[[92,76,7]],l:[[[82,84],[44,90]],[[82,84],[70,100]],[[44,90],[26,100],[12,102]],[[44,90],[52,118],[54,140]],[[54,140],[66,140]],[[82,84],[96,74],[80,92]]],b:[[80,94,5]]}},
 
 tri_overhead:{name:"Extension triceps nuque (haltère)",equip:"Un haltère tenu à deux mains, assis sur le banc à 80° ou debout",
- sets:3,reps:"10-15",rir:"1",tempo:"2-1-1",rest:0,
+ sets:3,reps:"10-15",rir:"1",tempo:"2-1-1",rest:60,
  setup:["Haltère tenu par le dessus, paumes sous le disque du haut.","Bras tendus au-dessus de la tête, coudes proches des oreilles. Départ à 12-14 kg."],
  cues:["Descends l'haltère derrière la nuque en pliant seulement les coudes, en 2 s.","Étire bien en bas, remonte sans écarter les coudes.","Gainage : pas de cambrure."],
  errors:[["Coudes qui s'écartent.","Tu le sens quand ça part dans les épaules."],["Amplitude courte.","Tu le sens quand tu n'as jamais d'étirement à l'arrière du bras."]],
- prog:"Superset D1 avec le face pull (D2), 60 s après D2. 10→15 reps puis +2 kg.",
+ prog:"60 s de repos entre les séries. 10→15 reps puis +2 kg.",
  mus:{p:["triceps"],s:[]},
  props:FLOOR,
  start:{c:[[55,34,7]],l:[[[55,42],[54,92]],[[54,92],[55,116],[55,140]],[[55,140],[68,140]],[[55,42],[60,20],[44,18]]],b:[[42,18,5]],a:[[34,14],[48,6]]},
@@ -916,7 +916,7 @@ ${pinned?`<button class="link" onclick="unpin()">Revenir à la semaine ${cw}</bu
 <p>${esc(plan.note)}</p>
 <h4>Échauffement</h4><p>${esc(s.wu)}</p><button class="restbtn wub" onclick="startWu()">${ICON_T}Lancer l'échauffement ${wuMin(s)} min</button>
 <h4>Chrono</h4><p><b>${s.label} — ${s.sub}, 45 min chrono.</b> ${MODEL.length} postes, ${nser} exercices. Échauffement jusqu'à 4 min, puis environ ${per} min par poste. Tu dois avoir fini le poste 2 à la moitié du temps.</p>
-${state.week===1?`<h4>Retest</h4><p>Semaine de retest : développé couché lundi, squat technique mardi (goblet + barre à vide), soulevé de terre jeudi. Le retest remplace les séries de travail du 1er exercice.</p>`:''}
+${state.week===1?`<h4>Retest</h4><p>Semaine de retest : développé couché lundi, squat technique jeudi (goblet + barre à vide), soulevé de terre jeudi. Le retest remplace les séries de travail du 1er exercice.</p>`:''}
 ${dl?`<h4>Décharge</h4><p>Décharge : les séries sont déjà divisées par deux ci-dessous et le RIR passé à 4. Enlève 15 % de charge sur tout. Même durée, même ordre, tu sors frais.</p>`:''}
 <h4>Minuteur</h4><label class="swrow"><span class="grow"><b>Repos automatique</b><small>Cocher une série lance le repos de l'exercice</small></span><input type="checkbox" role="switch" class="switch" ${state.autoRest?'checked':''} onchange="state.autoRest=this.checked;save()"></label>
 <p class="small" id="sndInfo">${sndInfo()}</p>
