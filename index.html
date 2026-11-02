@@ -250,18 +250,61 @@ ul{margin:0;padding-left:20px}li{margin-bottom:7px}
 .mus{width:100%;background:#101216;border-radius:var(--r2);display:block}
 .m{fill:#3d434d}.m.p{fill:var(--acc)}.m.s{fill:#a86e26}
 .mo{fill:none;stroke:#5a6270;stroke-width:2}
-.yr{display:grid;grid-template-columns:repeat(13,1fr);gap:3px;margin:10px 0}
-.wk{aspect-ratio:1;border-radius:4px;font-size:var(--fs-xs);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--on-acc)}
-.wk.dl{outline:2px dashed #fff;outline-offset:-3px}
-.wk.now{box-shadow:0 0 0 3px #fff}
-.blk{border-left:10px solid;padding:var(--sp2) 10px;margin-bottom:10px;background:var(--s1);border-radius:0 var(--r2) var(--r2) 0}
-.blk b{font-size:var(--fs-m)}
-.blk .small{margin-top:4px}
-table{width:100%;border-collapse:collapse;font-size:var(--fs-s)}
-td,th{padding:6px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
-th{color:var(--tx2);font-weight:700;font-size:var(--fs-xs)}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp2)}
-.lab{font-size:var(--fs-xs);color:var(--tx2);margin-bottom:3px}
+/* ========== Plan ========== */
+.hero{display:flex;align-items:center;gap:var(--sp4);background:var(--s1);border:1px solid var(--line);border-radius:var(--r3);padding:var(--sp4)}
+.hero small{display:block;font-size:var(--fs-xs);color:var(--tx2)}
+.hero b{font-size:var(--fs-big);font-weight:800;line-height:1}
+.hero b span{font-size:var(--fs-m);color:var(--tx2)}
+.hero p{margin:var(--sp1) 0 0}
+.frise{display:flex;gap:2px;height:28px;margin:var(--sp4) 0 var(--sp2)}
+.frise i{flex:1;border-radius:3px;opacity:.55}
+.frise i.dl{background-image:repeating-linear-gradient(135deg,transparent 0 3px,rgba(15,17,20,.75) 3px 6px)!important}
+.frise i.now{opacity:1;transform:scaleY(1.3);box-shadow:0 0 0 2px var(--tx)}
+.sw.wkdl{background:repeating-linear-gradient(135deg,var(--tx2) 0 3px,transparent 3px 6px);outline:1px dashed var(--tx2)}
+.sw.wknow{background:var(--blk);box-shadow:0 0 0 2px var(--tx)}
+.sw.wkdot{width:8px;height:8px;border-radius:50%;background:var(--tx)}
+.blkc{background:var(--s1);border:1px solid var(--line);border-left:6px solid var(--c);border-radius:var(--r3);padding:var(--sp4);margin-top:var(--sp3)}
+.blkc.cur{box-shadow:0 0 0 1px var(--c)}
+.blkc h2{display:flex;align-items:center;gap:var(--sp2);font-size:var(--fs-m)}
+.blkc>p{margin:var(--sp1) 0 0;font-size:var(--fs-s)}
+.wks{display:grid;grid-template-columns:repeat(5,1fr);gap:var(--sp2);margin-top:var(--sp3)}
+.wkb{position:relative;padding:0;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;font-size:var(--fs-m);font-variant-numeric:tabular-nums;background:var(--s2);border:1px solid var(--line2)}
+.wkb small{font-size:var(--fs-xs);font-weight:600;color:var(--tx2)}
+.wkb.dl{border:1px dashed var(--tx2);background:repeating-linear-gradient(135deg,var(--s2) 0 6px,var(--s1) 6px 12px)}
+.wkb.now{background:var(--c);border-color:var(--c);color:var(--on-acc);box-shadow:0 0 0 2px var(--tx)}
+.wkb.now small{color:var(--on-acc)}
+.wkb.sel{border:2px solid var(--c)}
+.wkb i{position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:currentColor}
+.field{display:flex;flex-direction:column;gap:var(--sp1);margin-top:var(--sp4)}
+.field label{font-size:var(--fs-xs);color:var(--tx2);font-weight:600}
+.field input{width:100%;font-size:var(--fs-m)}
+/* ========== Progression ========== */
+.vt{font-size:var(--fs-l);margin:var(--sp5) 0 var(--sp1)}
+.vt:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp3);margin-top:var(--sp2)}
+.grid2 .field{margin:0;background:var(--s1);border:1px solid var(--line);border-radius:var(--r3);padding:var(--sp3);justify-content:space-between}
+.spks{display:grid;gap:var(--sp3);margin-top:var(--sp3)}
+.spk{background:var(--s1);border:1px solid var(--line);border-radius:var(--r3);padding:var(--sp3) var(--sp4)}
+.spk h3,.spk.empty h3{margin:0;font-size:var(--fs-s);color:var(--tx);text-transform:none;letter-spacing:0}
+.spkh{display:flex;justify-content:space-between;align-items:baseline;gap:var(--sp2)}
+.spkh b{font-size:var(--fs-l)}
+.spk svg{display:block;width:100%;height:64px;margin:var(--sp2) 0 var(--sp1);overflow:visible}
+.spk polyline{fill:none;stroke:var(--acc);stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.spk circle{fill:var(--acc);stroke:var(--s1);stroke-width:2;vector-effect:non-scaling-stroke}
+.spkb{stroke:var(--line2);stroke-width:1;vector-effect:non-scaling-stroke}
+.spk.empty{border-style:dashed}
+.spk.empty p{margin:var(--sp1) 0 0}
+.tbl{overflow-x:auto;margin-top:var(--sp3);border:1px solid var(--line);border-radius:var(--r3);background:var(--s1)}
+table{border-collapse:separate;border-spacing:0;font-size:var(--fs-s);min-width:100%;white-space:nowrap}
+td,th{padding:var(--sp3);border-bottom:1px solid var(--line);text-align:left;font-variant-numeric:tabular-nums}
+tr:last-child>*{border-bottom:0}
+thead th{font-size:var(--fs-xs);color:var(--tx2)}
+thead .dot{display:inline-block;width:8px;height:8px;margin-right:5px}
+tbody th{position:sticky;left:0;z-index:1;background:var(--s1);box-shadow:1px 0 0 var(--line)}
+thead th:first-child{position:sticky;left:0;z-index:1;background:var(--s1)}
+.ccur{background:var(--s3)}
+thead .ccur{color:var(--tx)}
+.gold{margin-top:var(--sp2)}
 pre{white-space:pre-wrap;background:var(--s2);padding:10px;border-radius:10px;font-size:var(--fs-xs);margin:var(--sp2) 0 0}
 .status{font-size:var(--fs-xs);color:var(--tx2);margin-top:6px}
 .legend{display:flex;gap:var(--sp3);font-size:var(--fs-xs);color:var(--tx2);margin:6px 0;flex-wrap:wrap}
@@ -1017,24 +1060,49 @@ function exportTxt(){
   pre.scrollIntoView({behavior:reduced()?'auto':'smooth',block:'nearest'});
 }
 
+/* ---------- Plan annuel ---------- */
 function vYear(){
-  const cur=curWeek(),inYear=true,blk=blockOf;
-  let h=`<div class="row"><label for="st" class="small">Début (lundi)</label><input id="st" type="date" value="${state.start}" onchange="state.start=this.value;save();render()"></div>`;
-  h+=`<div class="banner">${inYear?`Semaine <b>${cur}</b> sur 52 — bloc ${blk(cur).n}, ${blk(cur).name}${DELOADS.includes(cur)?' — <b>décharge</b>':''}`:(cur<1?`Le programme démarre dans ${1-cur} semaine(s)`:'Année terminée : retest complet et nouveau cycle')}</div>`;
-  h+=`<div class="legend"><span><span class="sw" style="outline:2px dashed #fff;outline-offset:-2px;background:#555"></span> décharge</span><span><span class="sw" style="box-shadow:0 0 0 2px #fff;background:#555"></span> aujourd'hui</span></div><div class="yr">`;
-  for(let w=1;w<=52;w++){const b=blk(w);h+=`<div class="wk ${DELOADS.includes(w)?'dl':''} ${w===cur?'now':''}" style="background:${b.color}" title="Semaine ${w}">${w}</div>`;}
-  h+='</div>';
-  BLOCKS.forEach(b=>{h+=`<div class="blk" style="border-color:${b.color}"><b>Bloc ${b.n} — ${b.name}</b><div class="small">Semaines ${b.w[0]} à ${b.w[1]} · RIR ${b.rir} · décharge S${b.w[1]}</div><div style="font-size:16px;margin-top:4px">${b.obj}</div></div>`;});
-  return h;
+  const cur=curWeek(),bc=blockOf(cur),done=new Set(Object.keys(state.logs).map(k=>+k.split('|')[0]));
+  let h=`<div class="hero"><div><small>Semaine en cours</small><b class="tn">${cur}<span>/52</span></b></div><div class="grow"><span class="chip"><i class="dot" style="background:${bc.color}"></i><span>Bloc ${bc.n} · ${bc.name}</span></span>${isDL(cur)?'<p class="small">Semaine de décharge</p>':''}</div></div>
+<div class="frise" aria-hidden="true">${Array.from({length:52},(_,k)=>{const w=k+1;return `<i class="${isDL(w)?'dl':''}${w===cur?' now':''}" style="background:${blockOf(w).color}"></i>`;}).join('')}</div>
+<div class="legend"><span><span class="sw wkdl"></span> décharge</span><span><span class="sw wknow"></span> semaine en cours</span><span><span class="sw wkdot"></span> saisies</span></div>`;
+  BLOCKS.forEach(b=>{
+    let wk='';
+    for(let w=b.w[0];w<=b.w[1];w++)wk+=`<button class="wkb${isDL(w)?' dl':''}${w===cur?' now':''}${w===state.week&&w!==cur?' sel':''}" onclick="openWeek(${w})" aria-label="Semaine ${w}${isDL(w)?', décharge':''}${w===cur?', en cours':''}${done.has(w)?', saisies enregistrées':''}">${w}${isDL(w)?'<small>déch.</small>':''}${done.has(w)?'<i></i>':''}</button>`;
+    h+=`<section class="blkc${b===bc?' cur':''}" style="--c:${b.color}"><h2><i class="dot" style="background:${b.color}"></i>Bloc ${b.n} — ${b.name}</h2><p class="small">Semaines ${b.w[0]} à ${b.w[1]} · RIR ${b.rir} · décharge S${b.w[1]}</p><p>${b.obj}</p><div class="wks">${wk}</div></section>`;
+  });
+  return h+`<div class="field"><label for="st">Début du programme (un lundi)</label><input id="st" type="date" value="${state.start}" onchange="state.start=this.value;save();render()"></div>`;
 }
+/* Un tap sur une semaine l'ouvre dans Aujourd'hui */
+function openWeek(w){state.week=w;state.pinned=w!==curWeek();openP.clear();save();scrollY0.today=0;go('today');}
 
-function refIn(id,lab,ph){return `<div><div class="lab">${lab}</div><input type="text" placeholder="${ph}" value="${esc(state.refs[id]||'')}" oninput="state.refs['${id}']=this.value;save()"></div>`;}
+/* ---------- Progression ---------- */
+function refIn(id,lab,ph){return `<div class="field"><label for="ref-${id}">${lab}</label><input id="ref-${id}" type="text" placeholder="${ph}" value="${esc(state.refs[id]||'')}" oninput="state.refs['${id}']=this.value;save()"></div>`;}
+const LIFTS=['bench','squat','incline_bb','bb_row','rdl','plurima_ohp'];
+/* Meilleure charge saisie par semaine, tous jours confondus */
+function bestByWeek(ex){
+  const b={};
+  for(const k in state.logs){const [w,,x,i]=k.split('|');if(x!==ex||i==='b')continue;const v=numv(state.logs[k].w);if(v!=null&&v>0&&!(b[w]>=v))b[w]=v;}
+  return Object.keys(b).map(Number).sort((a,c)=>a-c).map(w=>[w,b[w]]);
+}
+function spark(ex){
+  const d=bestByWeek(ex),name=EX[ex].name;
+  if(!d.length)return `<div class="spk empty"><h3>${esc(name)}</h3><p class="small">Pas encore de données : tes charges apparaîtront ici dès la première série saisie.</p></div>`;
+  const W=300,H=64,P=6,w0=d[0][0],w1=Math.max(d[d.length-1][0],w0+1),vs=d.map(p=>p[1]),lo=Math.min(...vs),hi=Math.max(...vs),r=hi-lo||1;
+  const X=w=>P+(w-w0)/(w1-w0)*(W-2*P),Y=v=>hi===lo?H/2:H-P-(v-lo)/r*(H-2*P);
+  const pts=d.map(([w,v])=>[X(w).toFixed(1),Y(v).toFixed(1)]),last=d[d.length-1],delta=last[1]-d[0][1];
+  return `<div class="spk"><div class="spkh"><h3>${esc(name)}</h3><b class="tn">${disp(last[1])} kg</b></div>
+<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${esc(name)}, meilleure charge par semaine : ${d.map(([w,v])=>`S${w} ${disp(v)} kg`).join(', ')}"><line class="spkb" x1="0" x2="${W}" y1="${H-1}" y2="${H-1}"/><polyline points="${pts.map(p=>p.join(',')).join(' ')}"/>${d.map(([w,v],k)=>`<circle cx="${pts[k][0]}" cy="${pts[k][1]}" r="${k===d.length-1?4:2.5}"><title>S${w} : ${disp(v)} kg</title></circle>`).join('')}</svg>
+<p class="small tn">S${d[0][0]} → S${last[0]} · ${d.length} semaine${d.length>1?'s':''}${d.length>1?` · ${delta>=0?'+':'−'}${disp(Math.abs(delta))} kg`:''}</p></div>`;
+}
 function vProg(){
-  let h=`<p class="info">Tes charges de référence après la semaine de retest. Tout le reste du bloc part de là.</p><div class="grid2">`;
+  const bc=blockOf(curWeek());
+  let h=`<h2 class="vt">Références</h2><p class="small">Tes charges de référence après la semaine de retest. Tout le reste du bloc part de là.</p><div class="grid2">`;
   h+=refIn('bench','Développé couché (kg × reps)','kg × reps')+refIn('squat','Squat (kg × reps)','kg × reps')+refIn('dl','Soulevé de terre (meilleur single)','kg')+refIn('pull','Tractions strictes (total 3 séries)','a+b+c')+refIn('bw','Poids du corps (kg, moy. semaine)','kg')+refIn('waist','Tour de taille au nombril (cm)','cm');
-  h+=`</div><h3>Paliers visés, bloc par bloc</h3><p class="small">Cibles indicatives : fin de bloc, dernière série de travail à RIR 1-2. Elles supposent que le poids monte (colonne du bas).</p><div style="overflow-x:auto"><table><tr><th>Mouvement</th>${BLOCKS.map(b=>`<th style="color:${b.color}">B${b.n}</th>`).join('')}</tr>`;
-  TARGETS.forEach(r=>{h+=`<tr><td><b>${r[0]}</b></td>${r.slice(1).map(c=>`<td>${c}</td>`).join('')}</tr>`;});
-  h+=`</table></div><h3>Règle d'or</h3><ul><li>Une charge ne monte que si toutes les séries ont atteint le haut de la fourchette au RIR demandé.</li><li>Quand +10 kg est trop lourd : 4e série à l'ancienne charge pendant 2 semaines, puis retente.</li><li>À 18 kg d'haltères : reps → tempo → pause → 1,5 reps → variante barre. Dans cet ordre.</li></ul>`;
+  h+=`</div><h2 class="vt">Meilleure charge par semaine</h2><div class="spks">${LIFTS.map(spark).join('')}</div>`;
+  h+=`<h2 class="vt">Paliers visés, bloc par bloc</h2><p class="small">Cibles indicatives : fin de bloc, dernière série de travail à RIR 1-2. Elles supposent que le poids monte (dernière ligne).</p><div class="tbl" tabindex="0" role="region" aria-label="Paliers visés, défilable"><table><thead><tr><th scope="col">Mouvement</th>${BLOCKS.map(b=>`<th scope="col" class="${b===bc?'ccur':''}"><i class="dot" style="background:${b.color}"></i>B${b.n}</th>`).join('')}</tr></thead><tbody>`;
+  TARGETS.forEach(r=>{h+=`<tr><th scope="row">${r[0]}</th>${r.slice(1).map((c,k)=>`<td class="${BLOCKS[k]===bc?'ccur':''}">${c}</td>`).join('')}</tr>`;});
+  h+=`</tbody></table></div><h2 class="vt">Règle d'or</h2><ul class="gold"><li>Une charge ne monte que si toutes les séries ont atteint le haut de la fourchette au RIR demandé.</li><li>Quand +10 kg est trop lourd : 4e série à l'ancienne charge pendant 2 semaines, puis retente.</li><li>À 18 kg d'haltères : reps → tempo → pause → 1,5 reps → variante barre. Dans cet ordre.</li></ul>`;
   return h;
 }
 
