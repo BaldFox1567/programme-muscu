@@ -80,34 +80,105 @@ main{max-width:var(--maxw);margin:0 auto;padding:var(--sp4) calc(var(--sar) + va
 #timer .t small{display:block;font-size:var(--fs-xs);font-weight:600;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #timer.done .t{background:var(--acc);color:var(--on-acc)}#timer.done .t small{color:var(--on-acc)}
 
-/* ========== Anciennes vues (rebranchées sur les tokens) ========== */
-.days{display:flex;gap:var(--sp2);margin-bottom:var(--sp3)}
-.days button{flex:1;font-size:var(--fs-l);min-height:56px;line-height:1.1}
-.days button small{display:block;font-size:var(--fs-xs);font-weight:600;opacity:.85}
-.days button.on{background:var(--acc);color:var(--on-acc)}
-.row{display:flex;gap:var(--sp2);align-items:center;margin-bottom:var(--sp3)}
-input[type=number]{width:100%;text-align:center;font-size:var(--fs-l);font-weight:700;-moz-appearance:textfield}
-input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none}
-.banner{background:var(--acc-bg);border:1px solid var(--acc);border-radius:var(--r2);padding:var(--sp2) var(--sp3);margin-bottom:var(--sp3);font-size:var(--fs-s)}
-.info{color:var(--tx2);font-size:var(--fs-s);margin:0 0 var(--sp3);line-height:1.45}
-.card{background:var(--s1);border-radius:var(--r3);padding:var(--sp3);margin-bottom:var(--sp3);border:1px solid var(--line)}
-.card.ss{border:2px solid var(--acc2)}
-.sstitle{font-size:var(--fs-xs);color:var(--acc2);font-weight:800;margin-bottom:6px}
-.exh{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--sp2)}
-.exn{font-size:var(--fs-l);font-weight:800;line-height:1.2}
-.num{display:inline-block;background:var(--acc);color:var(--on-acc);border-radius:var(--r1);padding:1px 8px;font-size:var(--fs-s);margin-right:6px;vertical-align:middle}
-.presc{font-size:var(--fs-m);color:var(--acc2);font-weight:700;margin:6px 0 4px}
-.small{font-size:var(--fs-xs);color:var(--tx2)}
-.btns{display:flex;gap:var(--sp2);margin:10px 0 4px}
-.btns button{flex:1}
-.bandrow{display:flex;align-items:center;gap:var(--sp2);margin-top:10px;background:var(--s2);border-radius:var(--r2);padding:6px 10px}
+/* ========== Aujourd'hui ========== */
+.grow{flex:1;min-width:0}
+.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.chev{width:22px;height:22px;flex:none;fill:none;stroke:var(--tx2);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transition:transform var(--d2) var(--ease)}
+[aria-expanded=true]>.chev{transform:rotate(180deg)}
+/* Contrôle segmenté des jours */
+.seg{--i:0;position:relative;display:flex;gap:4px;padding:4px;background:var(--s1);border:1px solid var(--line);border-radius:var(--r3)}
+.seg .ind{position:absolute;top:4px;bottom:4px;left:4px;width:calc((100% - 16px)/3);border-radius:var(--r2);background:var(--acc);transform:translateX(calc(var(--i)*(100% + 4px)));transition:transform var(--d3) var(--spring)}
+.seg button{position:relative;flex:1;background:none;min-height:54px;line-height:1.15;font-size:var(--fs-m);color:var(--tx);padding:0 var(--sp1)}
+.seg button small{display:block;font-size:var(--fs-xs);font-weight:600;color:var(--tx2)}
+.seg button[aria-checked=true],.seg button[aria-checked=true] small{color:var(--on-acc)}
+/* Semaine (second plan) */
+.wline{display:flex;align-items:center;gap:var(--sp2);flex-wrap:wrap;margin:var(--sp3) 0}
+.wsel{position:relative;display:inline-flex}
+.wsel select{-webkit-appearance:none;appearance:none;background:var(--s1);border:1px solid var(--line2);border-radius:var(--rf);font-size:16px;font-weight:700;padding:0 38px 0 var(--sp4)}
+.wsel::after{content:"";position:absolute;right:16px;top:50%;width:8px;height:8px;border:solid var(--tx2);border-width:0 2px 2px 0;transform:translateY(-70%) rotate(45deg);pointer-events:none}
+.link{background:none;color:var(--acc2);padding:0 var(--sp2);text-decoration:underline;text-underline-offset:3px;font-size:var(--fs-s)}
+.status{margin-left:auto;font-size:var(--fs-xs);color:var(--tx2)}
+/* Bandeaux compacts */
+.note{margin:0 0 var(--sp2);border:1px solid;border-radius:var(--r2);padding:var(--sp2) var(--sp3);font-size:var(--fs-s);font-weight:600}
+.note.rt{background:var(--acc-bg);border-color:var(--acc);color:var(--acc2)}
+.note.dl{background:var(--dl-bg);border-color:var(--dl);color:var(--dl)}
+/* Panneau Infos de la séance */
+.infos{background:var(--s1);border:1px solid var(--line);border-radius:var(--r3);margin-bottom:var(--sp4);overflow:hidden}
+.infos-sum{width:100%;display:flex;align-items:center;gap:var(--sp3);background:none;border-radius:0;text-align:left;padding:var(--sp2) var(--sp4);min-height:58px}
+.infos-sum b{display:block;font-size:var(--fs-s)}
+.infos-sum small,.pdone small{display:block;font-size:var(--fs-xs);color:var(--tx2);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.infos-in{padding:0 var(--sp4) var(--sp4);font-size:var(--fs-s);color:var(--tx2);line-height:1.5}
+.infos-in p{margin:0}
+.infos-in b{color:var(--tx)}
+.infos-in h4{font-size:var(--fs-xs);color:var(--acc);text-transform:uppercase;letter-spacing:.6px;margin:var(--sp4) 0 var(--sp1)}
+.infos-in .blkl{display:flex;gap:var(--sp2);align-items:baseline;margin-bottom:var(--sp3)}
+/* Cartes de poste */
+.poste{position:relative;background:var(--s1);border:1px solid var(--line);border-radius:var(--r3);margin-bottom:var(--sp3);scroll-margin-top:calc(var(--sat) + 64px)}
+.poste.cur{border-color:var(--blk);box-shadow:0 0 0 1px var(--blk),0 8px 24px rgba(0,0,0,.35)}
+.pbody{padding:var(--sp4) var(--sp3) var(--sp3)}
+.poste.done:not(.open) .pbody{display:none}
+.pdone{display:none;width:100%;align-items:center;gap:var(--sp3);background:none;border-radius:var(--r3);text-align:left;padding:var(--sp2) var(--sp3);min-height:60px}
+.poste.done .pdone{display:flex}
+.poste.done.open .pdone{border-bottom:1px solid var(--line);border-radius:var(--r3) var(--r3) 0 0}
+.pdone b{display:block;font-size:var(--fs-s);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.okc{width:32px;height:32px;border-radius:50%;background:var(--ok);display:flex;align-items:center;justify-content:center;flex:none}
+.okc svg{width:20px;height:20px;fill:none;stroke:var(--on-acc);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
+.sshd{display:flex;justify-content:space-between;align-items:center;gap:var(--sp2);margin:-4px 0 var(--sp3);font-size:var(--fs-xs);font-weight:800;color:var(--tx2);text-transform:uppercase;letter-spacing:.6px}
+.flow{display:flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0}
+.flow b{background:var(--s2);border-radius:var(--r1);padding:3px 8px;color:var(--tx)}
+.flow b.r{background:var(--rest-bg);color:var(--rest)}
+.flow i{font-style:normal;color:var(--tx3)}
+.sslink{margin:var(--sp2) 0 var(--sp2) 15px;padding:var(--sp1) 0 var(--sp1) var(--sp4);border-left:2px dashed var(--acc);font-size:var(--fs-xs);font-weight:700;color:var(--acc2)}
+.exh{display:flex;align-items:center;gap:var(--sp2)}
+.badge{flex:none;min-width:32px;height:30px;padding:0 8px;border-radius:var(--r1);background:var(--acc);color:var(--on-acc);font-weight:800;font-size:var(--fs-s);display:inline-flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
+.exn{flex:1;min-width:0;margin:0;font-size:var(--fs-l);font-weight:800;line-height:1.2;color:var(--tx);text-transform:none;letter-spacing:0}
+.fiche{flex:none;font-size:var(--fs-s);padding:0 var(--sp3)}
+.pills{list-style:none;margin:var(--sp3) 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.pills li{margin:0;background:var(--s2);border-radius:var(--rf);padding:4px 11px;font-size:var(--fs-s);font-weight:700;color:var(--tx);font-variant-numeric:tabular-nums}
+.pills li:first-child{background:var(--acc-bg);color:var(--acc2)}
+.pills .prest{background:var(--rest-bg);color:var(--rest)}
+.pills .pdl{background:var(--dl-bg);color:var(--dl)}
+.equip{margin:var(--sp2) 0 0;font-size:var(--fs-xs);color:var(--tx2)}
+.last{margin:var(--sp2) 0 0;padding:var(--sp2) var(--sp3);background:var(--bg);border-radius:var(--r2);font-size:var(--fs-xs);color:var(--tx2)}
+.last b{display:block;font-size:var(--fs-s);color:var(--tx)}
+.bandrow{display:flex;align-items:center;gap:var(--sp2);margin-top:var(--sp3);background:var(--s2);border-radius:var(--r2);padding:2px var(--sp3)}
 .bandrow label{font-size:var(--fs-xs);color:var(--acc2);font-weight:800;white-space:nowrap}
-.bandrow input{flex:1;background:transparent;border:0;min-height:40px;font-size:16px;padding:0}
-.sets{display:grid;grid-template-columns:34px 1fr 1fr 54px;gap:6px;align-items:center;margin-top:var(--sp2)}
-.sets .hd{font-size:var(--fs-xs);color:var(--tx2);text-align:center}
-.chk{width:54px;height:48px;border-radius:var(--r2);background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:22px;border:0}
-.chk.on{background:var(--ok);color:var(--on-acc)}
-.sn{font-weight:800;text-align:center;color:var(--tx2)}
+.bandrow input{flex:1;min-width:0;background:transparent;border:0;font-size:16px;padding:0}
+/* Lignes de série */
+.sets{margin-top:var(--sp3)}
+.shd,.set{display:grid;grid-template-columns:24px 1fr 1fr 56px;column-gap:var(--sp2);align-items:center}
+.shd{font-size:var(--fs-xs);color:var(--tx2);font-weight:700;text-align:center;margin-bottom:var(--sp1)}
+.set{position:relative;padding:var(--sp1) 0;row-gap:var(--sp2)}
+.set::before{content:"";position:absolute;inset:0 -8px;border-radius:var(--r2);background:var(--ok-bg);opacity:0;transition:opacity var(--d2) var(--ease)}
+.set.ok::before{opacity:1}
+.set>*{position:relative}
+.sn{font-weight:800;text-align:center;color:var(--tx2);font-variant-numeric:tabular-nums}
+.set input{width:100%;min-width:0;height:56px;padding:0 4px;text-align:center;font-size:var(--fs-num);font-weight:800;font-variant-numeric:tabular-nums}
+.set input::placeholder{color:var(--tx3);font-weight:600}
+.chk{width:56px;height:56px;padding:0;border:2px solid var(--line2);display:flex;align-items:center;justify-content:center}
+.chk svg{width:30px;height:30px;fill:none;stroke:var(--on-acc);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
+.chk path{stroke-dasharray:22;stroke-dashoffset:22}
+.chk[aria-pressed=true]{background:var(--ok);border-color:var(--ok)}
+.chk[aria-pressed=true] path{stroke-dashoffset:0}
+.step{display:none;grid-template-columns:1fr 1fr;gap:var(--sp2)}
+.stw{grid-column:2}.str{grid-column:3}
+.set.act .step{display:grid}
+.step button{padding:0;font-size:var(--fs-s);background:var(--s3);font-variant-numeric:tabular-nums}
+.set.act .sn{color:var(--acc)}
+.pfoot{display:flex;justify-content:flex-end;margin-top:var(--sp3)}
+.restbtn{display:inline-flex;align-items:center;gap:var(--sp2);background:var(--rest-bg);color:var(--rest)}
+/* Fin de séance */
+.recap{background:var(--s1);border:1px solid var(--line);border-radius:var(--r3);padding:var(--sp4);margin-top:var(--sp5);scroll-margin-top:calc(var(--sat) + 64px)}
+.recap.complete{border-color:var(--ok);box-shadow:0 0 0 1px var(--ok)}
+.recap h2{font-size:var(--fs-l)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp2);margin:var(--sp3) 0}
+.stats div{background:var(--s2);border-radius:var(--r2);padding:var(--sp3) var(--sp1);text-align:center}
+.stats b{display:block;font-size:var(--fs-l);font-weight:800}
+.stats small{font-size:var(--fs-xs);color:var(--tx2)}
+.btns{display:flex;gap:var(--sp2);margin-top:var(--sp3)}
+.btns button{flex:1}
+.danger{background:var(--bad-bg);color:var(--bad)}
+.small{font-size:var(--fs-xs);color:var(--tx2)}
 .exsvg{width:100%;height:auto;background:#101216;border-radius:var(--r2);margin:var(--sp2) 0;display:block}
 .fl{fill:none;stroke:#f7f5f0;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
 .fh{fill:#f7f5f0}
@@ -580,6 +651,7 @@ function render(){
   const bh=blockOf(state.week);
   document.documentElement.style.setProperty('--blk',bh.color);
   $('v-'+state.view).innerHTML=state.view==='today'?vToday():state.view==='year'?vYear():vProg();
+  if(state.view==='today')afterToday();
   renderHead();
 }
 function renderHead(){
@@ -613,61 +685,198 @@ function merged(it){
   if(DELOADS.includes(state.week)){m.sets=Math.max(1,Math.ceil(m.sets/2));m.rir="4";m.deload=true;}
   CUR[ex]=m;return m;
 }
-function setRows(ex){
-  const e=CUR[ex]||EX[ex];let h='';
-  if(e.band){const b=getSet(ex,'b');
-    h+=`<div class="bandrow"><label for="bd-${ex}">Élastique</label><input id="bd-${ex}" type="text" value="${esc(b.v??'')}" placeholder="ex. noir épais, 30-60 kg" oninput="setField('${ex}','b','v',this.value)"></div>`;}
-  h+=`<div class="sets"><div class="hd">#</div><div class="hd">${e.wl||'kg'}</div><div class="hd">reps</div><div class="hd">fait</div>`;
-  for(let i=0;i<e.sets;i++){
-    const s=getSet(ex,i);
-    h+=`<div class="sn">${i+1}</div>
-<input type="number" inputmode="decimal" placeholder="kg" value="${s.w??''}" oninput="setField('${ex}',${i},'w',this.value)" aria-label="charge série ${i+1}">
-<input type="number" inputmode="numeric" placeholder="reps" value="${s.r??''}" oninput="setField('${ex}',${i},'r',this.value)" aria-label="reps série ${i+1}">
-<button class="chk ${s.ok?'on':''}" onclick="toggle('${ex}',${i},this)" aria-label="série ${i+1} faite">${s.ok?'✓':''}</button>`;
-  }
-  return h+'</div>';
-}
-function toggle(ex,i,btn){const s=getSet(ex,i);setField(ex,i,'ok',!s.ok);btn.classList.toggle('on',!s.ok);btn.textContent=!s.ok?'✓':'';renderHead();}
 
-function exCard(it,n){
-  const e=merged(it),ex=e.ex||(typeof it==='string'?it:it.ex);
-  return `<div class="exh"><div class="exn">${n?`<span class="num">${n}</span>`:''}${esc(e.name)}</div></div>
-<div class="presc">${presc(e)}${e.deload?' <span style="color:#4fd39c">· décharge</span>':''}</div>
-<div class="small">${esc(e.equip)}</div>
-<div class="btns"><button onclick="openEx('${ex}')">Fiche</button>${e.rest?`<button class="acc" onclick="startTimer(${e.rest},'${esc(e.name)}')">Repos ${fmt(e.rest)}</button>`:''}</div>
-${setRows(ex)}`;
+/* ---------- Vue Aujourd'hui ---------- */
+const isDL=w=>DELOADS.includes(w);
+const numv=v=>{const n=parseFloat(String(v??'').replace(',','.'));return isNaN(n)?null:n;};
+const disp=v=>v==null?'':String(v).replace('.',',');
+const CHECK='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const CHEV='<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+const ICON_T='<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg>';
+/* MODEL : les postes de la séance affichée ; LT : « la dernière fois » par exercice ; openP : postes terminés redépliés */
+let MODEL=[],LT={},openP=new Set();
+
+function buildModel(){
+  CUR={};
+  return PLAN[blockOf(state.week).n][state.day].map((it,p)=>{
+    const ss=!!it.ss;
+    const exs=(it.ss||[it]).map((x,k)=>{const m=merged(x);m.ex=typeof x==='string'?x:x.ex;m.tag=(p+1)+(ss?'·A'+(k+1):'');m.k=k;m.p=p;return m;});
+    return {p,ss,rest:ss?it.rest:exs[0].rest,exs};
+  });
 }
+/* Ordre réel des séries : un superset alterne A1, A2, A1, A2… */
+function seqOf(P){
+  const out=[];
+  if(P.ss){const n=Math.max(...P.exs.map(m=>m.sets));for(let i=0;i<n;i++)P.exs.forEach(m=>{if(i<m.sets)out.push([m,i]);});}
+  else P.exs.forEach(m=>{for(let i=0;i<m.sets;i++)out.push([m,i]);});
+  return out;
+}
+const nextSet=()=>MODEL.flatMap(seqOf).find(([m,i])=>!getSet(m.ex,i).ok);
+const posteDone=P=>seqOf(P).every(([m,i])=>getSet(m.ex,i).ok);
+
+/* Saisie la plus récente des semaines précédentes : hors décharge de préférence, même jour si possible */
+function lastTime(ex){
+  let best=null;
+  for(const k in state.logs){
+    const [w,d,x,i]=k.split('|');
+    if(x!==ex||i==='b'||+w>=state.week)continue;
+    const s=state.logs[k];if(!s||!(s.w||s.r))continue;
+    const score=(isDL(+w)?0:1000)+(+w)*2+(d===state.day?1:0);
+    if(!best||score>best.score)best={score,w:+w,d};
+  }
+  if(!best)return null;
+  const sets=[];
+  for(let i=0;i<12;i++){const s=state.logs[best.w+'|'+best.d+'|'+ex+'|'+i];if(s&&(s.w||s.r))sets[i]=s;}
+  return {w:best.w,d:best.d,sets,dl:isDL(best.w)};
+}
+function lastBand(ex){
+  let w0=0,v='';
+  for(const k in state.logs){const [w,,x,i]=k.split('|');if(x===ex&&i==='b'&&+w<state.week&&+w>w0&&state.logs[k].v){w0=+w;v=state.logs[k].v;}}
+  return v;
+}
+const setTxt=s=>s.w?`${disp(s.w)}×${s.r||'—'}`:`${s.r} reps`;
+function phW(m,i,lt){
+  for(let j=i-1;j>=0;j--){const v=getSet(m.ex,j).w;if(v)return disp(v);}
+  if(lt){const s=lt.sets[i]||lt.sets.filter(Boolean).pop();if(s&&s.w)return disp(s.w);}
+  return m.wl||'kg';
+}
+function phR(m,i,lt){const s=lt&&lt.sets[i];return s&&s.r?s.r:'reps';}
+const wuMin=s=>+((s.wu.match(/(\d+)\s*min/)||[0,4])[1]);
+
 function vToday(){
-  const s=SESS[state.day],b=blockOf(state.week);
-  let h=`<div class="days">${Object.keys(SESS).map(d=>`<button class="${state.day===d?'on':''}" onclick="state.day='${d}';save();render()">${SESS[d].label}<small>${SESS[d].sub}</small></button>`).join('')}</div>`;
+  const days=Object.keys(SESS);
+  return `<div class="seg" role="radiogroup" aria-label="Séance du jour" style="--i:${days.indexOf(state.day)}"><i class="ind" aria-hidden="true"></i>${days.map(d=>`<button role="radio" aria-checked="${d===state.day}" onclick="setDay('${d}')">${SESS[d].label}<small>${SESS[d].sub}</small></button>`).join('')}</div><div id="tBody">${todayBody()}</div>`;
+}
+function todayBody(){
+  const s=SESS[state.day],b=blockOf(state.week),plan=PLAN[b.n],cw=curWeek(),dl=isDL(state.week),pinned=state.pinned&&state.week!==cw;
+  MODEL=buildModel();LT={};MODEL.forEach(P=>P.exs.forEach(m=>LT[m.ex]=lastTime(m.ex)));
+  const nser=MODEL.reduce((a,P)=>a+P.exs.length,0),per=Math.round(41/MODEL.length);
   let opts='';
   BLOCKS.forEach(b=>{opts+=`<optgroup label="Bloc ${b.n} — ${b.name}">`;
-    for(let w=b.w[0];w<=b.w[1];w++)opts+=`<option value="${w}" ${state.week===w?'selected':''}>Semaine ${w}${w===1?' (retest)':''}${DELOADS.includes(w)?' (décharge)':''}</option>`;
+    for(let w=b.w[0];w<=b.w[1];w++)opts+=`<option value="${w}" ${state.week===w?'selected':''}>Semaine ${w}${w===1?' (retest)':''}${isDL(w)?' (décharge)':''}</option>`;
     opts+='</optgroup>';});
-  h+=`<div class="row"><label for="wk" class="small">Semaine</label><select id="wk" onchange="state.week=+this.value;state.pinned=true;save();render()">${opts}</select>${state.pinned&&state.week!==curWeek()?`<button onclick="state.pinned=false;syncWeek();save();render()">Auj.</button>`:''}</div>
-<div class="row"><span class="status" id="status">${hasStorage?'Sauvegarde automatique':'Pas de stockage : exporte en fin de séance'}</span></div>`;
-  const plan=PLAN[b.n],items=plan[state.day];
-  CUR={};
-  h+=`<div class="banner" style="border-color:${b.color}">Bloc ${b.n} — <b>${b.name}</b> · semaines ${b.w[0]} à ${b.w[1]} · RIR ${b.rir}${state.pinned&&state.week!==curWeek()?` · <b>semaine figée</b>, aujourd'hui c'est la ${curWeek()}`:''}</div>`;
-  h+=`<p class="info" style="margin-bottom:12px">${esc(plan.note)}</p>`;
-  if(state.week===1)h+=`<div class="banner">Semaine de retest : développé couché lundi, squat technique mardi (goblet + barre à vide), soulevé de terre jeudi. Le retest remplace les séries de travail du 1er exercice.</div>`;
-  if(DELOADS.includes(state.week))h+=`<div class="banner">Décharge : les séries sont déjà divisées par deux ci-dessous et le RIR passé à 4. Enlève 15 % de charge sur tout. Même durée, même ordre, tu sors frais.</div>`;
-  const nser=items.reduce((a,it)=>a+(it.ss?2:1),0);
-  h+=`<p class="info"><b>${s.label} — ${s.sub}, 45 min chrono.</b> ${esc(s.wu)}<br><b>Chrono :</b> ${items.length} postes, ${nser} exercices. Échauffement jusqu'à 4 min, puis environ ${Math.round(41/items.length)} min par poste. Tu dois avoir fini le poste 2 à la moitié du temps.</p>`;
-  let n=0;
-  items.forEach(it=>{
-    n++;
-    if(it.ss){h+=`<div class="card ss"><div class="sstitle">Superset : enchaîne A1 puis A2 sans repos, puis ${fmt(it.rest)} de repos</div><div>${exCard(it.ss[0],n+'·A1')}</div><hr style="border:0;border-top:1px solid var(--line);margin:12px 0"><div>${exCard(it.ss[1],n+'·A2')}</div></div>`;}
-    else{h+=`<div class="card">${exCard(it,n)}</div>`;}
-  });
-  h+=`<div class="card"><div class="exn">Fin de séance</div><p class="small">Ton texte à coller dans tes notes. Il reprend toutes les semaines saisies.</p><div class="btns"><button class="acc" onclick="exportTxt()">Copier le journal</button><button onclick="resetWeek()">Effacer cette séance</button></div><pre id="exp" style="display:none"></pre></div>`;
-  return h;
+  let h=`<div class="wline"><span class="wsel"><label for="wk" class="vh">Semaine affichée</label><select id="wk" onchange="setWeek(+this.value)">${opts}</select></span>
+${pinned?`<button class="link" onclick="unpin()">Revenir à la semaine ${cw}</button>`:''}<span class="status" id="status">${hasStorage?'':'Pas de stockage : exporte en fin de séance'}</span></div>`;
+  if(state.week===1)h+=`<p class="note rt">Retest cette semaine : il remplace les séries du 1<sup>er</sup> exercice.</p>`;
+  if(dl)h+=`<p class="note dl">Décharge : séries ÷ 2, RIR 4, −15 % de charge partout.</p>`;
+  h+=`<div class="infos" id="infos"><button class="infos-sum" id="infosBtn" aria-expanded="false" aria-controls="infos-in" onclick="toggleInfos()"><span class="grow"><b>Infos de la séance</b><small>${s.sub} · ${MODEL.length} postes · ~${per} min par poste · échauffement ${wuMin(s)} min</small></span>${CHEV}</button>
+<div class="infos-in" id="infos-in" hidden>
+<p class="blkl"><i class="dot" aria-hidden="true"></i><span>Bloc ${b.n} — <b>${b.name}</b> · semaines ${b.w[0]} à ${b.w[1]} · RIR ${b.rir}${pinned?` · <b>semaine figée</b>, aujourd'hui c'est la ${cw}`:''}</span></p>
+<p>${esc(plan.note)}</p>
+<h4>Échauffement</h4><p>${esc(s.wu)}</p>
+<h4>Chrono</h4><p><b>${s.label} — ${s.sub}, 45 min chrono.</b> ${MODEL.length} postes, ${nser} exercices. Échauffement jusqu'à 4 min, puis environ ${per} min par poste. Tu dois avoir fini le poste 2 à la moitié du temps.</p>
+${state.week===1?`<h4>Retest</h4><p>Semaine de retest : développé couché lundi, squat technique mardi (goblet + barre à vide), soulevé de terre jeudi. Le retest remplace les séries de travail du 1er exercice.</p>`:''}
+${dl?`<h4>Décharge</h4><p>Décharge : les séries sont déjà divisées par deux ci-dessous et le RIR passé à 4. Enlève 15 % de charge sur tout. Même durée, même ordre, tu sors frais.</p>`:''}
+</div></div>`;
+  h+=MODEL.map(posteHtml).join('');
+  return h+recapHtml();
 }
+function posteHtml(P){
+  const d=posteDone(P),o=openP.has(P.p);
+  let h=`<article class="poste${P.ss?' ss':''}${d?' done':''}${o?' open':''}" id="p-${P.p}" aria-label="Poste ${P.p+1}">
+<button class="pdone" aria-expanded="${o}" aria-controls="pb-${P.p}" onclick="toggleP(${P.p})">${doneSummary(P)}</button>
+<div class="pbody" id="pb-${P.p}">`;
+  if(P.ss)h+=`<div class="sshd"><span>Superset</span><span class="flow"><b>A1</b><i>→</i><b>A2</b><i>→</i><b class="r">repos ${fmt(P.rest)}</b></span></div>`;
+  P.exs.forEach((m,k)=>{h+=exBlock(m,P);if(P.ss&&k===0)h+=`<div class="sslink">↓ enchaîne A2 sans repos</div>`;});
+  if(P.rest)h+=`<div class="pfoot"><button class="restbtn" onclick="startRest(${P.p})">${ICON_T}Repos ${fmt(P.rest)}</button></div>`;
+  return h+'</div></article>';
+}
+function doneSummary(P){
+  const sq=seqOf(P),n=sq.filter(([m,i])=>getSet(m.ex,i).ok).length;
+  return `<span class="okc" aria-hidden="true">${CHECK}</span><span class="grow"><b>${P.p+1} · ${P.exs.map(m=>esc(m.name)).join(' + ')}</b><small>${n}/${sq.length} séries · terminé</small></span>${CHEV}`;
+}
+function exBlock(m,P){
+  const lt=LT[m.ex];
+  const rest=P.ss?(m.k===0?'<li>→ A2 sans repos</li>':`<li class="prest">repos ${fmt(P.rest)}</li>`):(m.rest?`<li class="prest">repos ${fmt(m.rest)}</li>`:'');
+  let h=`<div class="exb"><div class="exh"><span class="badge">${m.tag}</span><h3 class="exn">${esc(m.name)}</h3><button class="fiche" onclick="openEx('${m.ex}')" aria-label="Fiche : ${esc(m.name)}">Fiche</button></div>
+<ul class="pills" aria-label="Prescription"><li>${m.sets} × ${esc(m.reps)}</li><li>RIR ${m.rir}</li><li>tempo ${esc(m.tempo)}</li>${rest}${m.deload?'<li class="pdl">décharge</li>':''}</ul>
+<p class="equip">${esc(m.equip)}</p>`;
+  if(lt)h+=`<p class="last"><span>La dernière fois · S${lt.w}${lt.d!==state.day?' '+SESS[lt.d].label.toLowerCase():''}${lt.dl?' (décharge)':''}</span><b class="tn">${lt.sets.filter(Boolean).map(setTxt).join(' · ')}</b></p>`;
+  if(m.band){const b=getSet(m.ex,'b');
+    h+=`<div class="bandrow"><label for="bd-${m.ex}">Élastique</label><input id="bd-${m.ex}" type="text" autocomplete="off" value="${esc(b.v??'')}" placeholder="${esc(lastBand(m.ex)||'ex. noir épais, 30-60 kg')}" oninput="setField('${m.ex}','b','v',this.value)"></div>`;}
+  h+=`<div class="sets" role="group" aria-label="Séries : ${esc(m.name)}"><div class="shd" aria-hidden="true"><span>#</span><span>${m.wl||'kg'}</span><span>reps</span><span>fait</span></div>`;
+  for(let i=0;i<m.sets;i++)h+=setRow(m,i,lt);
+  return h+'</div></div>';
+}
+function setRow(m,i,lt){
+  const s=getSet(m.ex,i),id=m.ex+'-'+i,n=i+1,a=`'${m.ex}',${i}`;
+  return `<div class="set${s.ok?' ok':''}" data-ex="${m.ex}" data-i="${i}"><span class="sn">${n}</span>
+<input id="w-${id}" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="next" value="${esc(disp(s.w??''))}" placeholder="${esc(phW(m,i,lt))}" aria-label="${m.wl==='+kg'?'Lest':'Charge'} série ${n}" oninput="inW(${a},this)" onfocus="setAct(this)">
+<input id="r-${id}" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" enterkeyhint="done" value="${esc(s.r??'')}" placeholder="${esc(phR(m,i,lt))}" aria-label="Répétitions série ${n}" oninput="setField(${a},'r',this.value)" onfocus="setAct(this)">
+<button class="chk" aria-pressed="${!!s.ok}" aria-label="Série ${n} faite" onclick="toggle(${a})">${CHECK}</button>
+<div class="step stw">${m.wl==='—'?'':`<button onclick="bump(${a},'w',-2.5)" aria-label="Moins 2,5 kg, série ${n}">−2,5</button><button onclick="bump(${a},'w',2.5)" aria-label="Plus 2,5 kg, série ${n}">+2,5</button>`}</div>
+<div class="step str"><button onclick="bump(${a},'r',-1)" aria-label="Une rep de moins, série ${n}">−1</button><button onclick="bump(${a},'r',1)" aria-label="Une rep de plus, série ${n}">+1</button></div></div>`;
+}
+function recapHtml(){
+  return `<section class="recap" id="recap" aria-labelledby="rcT"><h2 id="rcT">Fin de séance</h2>
+<div class="stats"><div><b id="rcDur" class="tn">—</b><small>durée</small></div><div><b id="rcSets" class="tn">0/0</b><small>séries</small></div><div><b id="rcVol" class="tn">0</b><small>kg de volume</small></div></div>
+<p class="small">Ton texte à coller dans tes notes. Il reprend toutes les semaines saisies.</p>
+<div class="btns"><button class="acc" onclick="exportTxt()">Copier le journal</button><button class="danger" onclick="resetWeek()">Effacer cette séance</button></div><pre id="exp" hidden></pre></section>`;
+}
+
+/* ---------- Saisie, sans rendu complet ---------- */
+function inW(ex,i,el){setField(ex,i,'w',el.value.replace(',','.').trim());refreshPh(ex,i);}
+/* La charge saisie devient le texte indicatif des séries suivantes encore vides */
+function refreshPh(ex,i){const m=CUR[ex];if(!m)return;for(let j=i+1;j<m.sets;j++){const el=$('w-'+ex+'-'+j);if(el)el.placeholder=phW(m,j,LT[ex]);}}
+function bump(ex,i,f,d){
+  const el=$(f+'-'+ex+'-'+i),v=Math.max(0,Math.round(((numv(el.value)??numv(el.placeholder)??0)+d)*100)/100);
+  el.value=f==='w'?disp(v):String(v);setField(ex,i,f,String(v));if(f==='w')refreshPh(ex,i);
+}
+function setAct(el){const row=el.closest('.set');document.querySelectorAll('.set.act').forEach(r=>r!==row&&r.classList.remove('act'));row.classList.add('act');}
+function updAct(){
+  const f=document.activeElement&&document.activeElement.closest&&document.activeElement.closest('.set');
+  if(f)return;
+  document.querySelectorAll('.set.act').forEach(r=>r.classList.remove('act'));
+  const n=nextSet();if(n){const r=document.querySelector(`.set[data-ex="${n[0].ex}"][data-i="${n[1]}"]`);if(r)r.classList.add('act');}
+}
+function toggle(ex,i){
+  const on=!getSet(ex,i).ok,row=document.querySelector(`.set[data-ex="${ex}"][data-i="${i}"]`);
+  if(on&&row){/* cocher une série vide reprend la charge indiquée */
+    const w=$('w-'+ex+'-'+i);if(!w.value&&numv(w.placeholder)!=null){w.value=w.placeholder;setField(ex,i,'w',w.placeholder.replace(',','.'));refreshPh(ex,i);}}
+  setField(ex,i,'ok',on);
+  if(row){row.classList.toggle('ok',on);row.querySelector('.chk').setAttribute('aria-pressed',on);}
+  if(document.activeElement&&row&&row.contains(document.activeElement)&&document.activeElement.tagName==='INPUT')document.activeElement.blur();
+  const P=MODEL.find(P=>P.exs.some(m=>m.ex===ex));
+  refreshPostes(on&&P?P.p:-1);
+}
+/* Met à jour les cartes (en cours / terminée), la série active, l'en-tête et le récap */
+function refreshPostes(justP){
+  const cur=MODEL.find(P=>!posteDone(P));
+  MODEL.forEach(P=>{const el=$('p-'+P.p);if(!el)return;const d=posteDone(P);
+    if(d&&P.p===justP)openP.delete(P.p);
+    el.classList.toggle('done',d);el.classList.toggle('cur',P===cur);el.classList.toggle('open',d&&openP.has(P.p));
+    const b=el.querySelector('.pdone');b.innerHTML=doneSummary(P);b.setAttribute('aria-expanded',openP.has(P.p));});
+  updAct();renderHead();updRecap();
+  if(justP>=0&&posteDone(MODEL[justP])){const t=cur?$('p-'+cur.p):$('recap');if(t)t.scrollIntoView({behavior:reduced()?'auto':'smooth',block:'start'});}
+}
+function toggleP(p){openP.has(p)?openP.delete(p):openP.add(p);refreshPostes(-1);}
+function toggleInfos(){const b=$('infosBtn'),o=b.getAttribute('aria-expanded')!=='true';b.setAttribute('aria-expanded',o);$('infos-in').hidden=!o;}
+const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+function updRecap(){
+  if(!$('recap'))return;
+  const p=sessProgress();let vol=0;
+  MODEL.forEach(P=>P.exs.forEach(m=>{if(m.wl)return;for(let i=0;i<m.sets;i++){const s=getSet(m.ex,i);if(s.ok)vol+=(numv(s.w)||0)*(numv(s.r)||0);}}));
+  $('rcSets').textContent=p.done+'/'+p.total;
+  $('rcVol').textContent=Math.round(vol).toLocaleString('fr-FR');
+  $('recap').classList.toggle('complete',p.total>0&&p.done===p.total);
+}
+function afterToday(){refreshPostes(-1);}
+function startRest(p){const P=MODEL[p];startTimer(P.rest,P.exs.map(m=>m.name).join(' + '));}
+function setDay(d){
+  if(d===state.day)return;
+  state.day=d;save();openP.clear();
+  const seg=document.querySelector('.seg'),days=Object.keys(SESS);
+  seg.style.setProperty('--i',days.indexOf(d));
+  seg.querySelectorAll('button').forEach((b,k)=>b.setAttribute('aria-checked',days[k]===d));
+  $('tBody').innerHTML=todayBody();afterToday();
+}
+function setWeek(w){state.week=w;state.pinned=true;save();openP.clear();render();}
+function unpin(){state.pinned=false;syncWeek();save();openP.clear();render();}
 function resetWeek(){
   if(!confirm('Effacer les saisies de la semaine '+state.week+' pour '+SESS[state.day].label+' ?'))return;
   const pre=state.week+'|'+state.day+'|';
   Object.keys(state.logs).forEach(k=>{if(k.startsWith(pre))delete state.logs[k];});
-  save();render();
+  save();openP.clear();render();
 }
 function exportTxt(){
   const lines=[];
@@ -682,7 +891,7 @@ function exportTxt(){
     lines.push(`S${w} ${SESS[d].label} – ${EX[ex].name}${bands[g]?` [élastique ${bands[g]}]`:''} : ${sets.join(', ')}`);});
   if(state.refs&&Object.keys(state.refs).length)lines.push('Références : '+JSON.stringify(state.refs));
   const txt=lines.join('\n')||'Aucune saisie.';
-  const pre=document.getElementById('exp');pre.style.display='block';pre.textContent=txt;
+  const pre=document.getElementById('exp');pre.hidden=false;pre.textContent=txt;
   if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(()=>setStatus('Journal copié')).catch(()=>{});}
 }
 
