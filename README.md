@@ -16,14 +16,16 @@ Les données saisies restent sur le téléphone (stockage local du navigateur). 
 
 - 3 séances par semaine : **Push / Pull / Legs**
 - **7 blocs** répartis sur **52 semaines**, avec semaines de décharge
-- **Minuteur de repos** intégré
-- **Saisie des charges** et des répétitions série par série
+- **Minuteur de repos automatique** à la coche d'une série (règle des supersets : rien entre A1 et A2, repos après A2), alerte plein écran et bips en fin de repos
+- **Chrono de séance** sur 45 min avec indicateur de rythme par poste, minuteur d'échauffement, écran maintenu allumé
+- **Saisie des charges** et des répétitions série par série, avec la perf de la semaine précédente en rappel
+- **Plan annuel** (un tap sur une semaine l'ouvre) et **courbes de progression**
 - **Export du journal** (copie en texte)
 
 ## Technique
 
 - Un seul fichier : `index.html` (HTML, CSS et JavaScript inline)
-- Zéro dépendance externe
+- Zéro dépendance externe (l'icône d'écran d'accueil est un PNG inline généré par `outils/icone.mjs`)
 - Zéro appel réseau : fonctionne hors ligne une fois la page chargée
 - Données stockées uniquement dans le `localStorage` du navigateur
 

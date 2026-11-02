@@ -227,7 +227,7 @@ main{max-width:var(--maxw);margin:0 auto;padding:var(--sp4) calc(var(--sar) + va
 .stats b{display:block;font-size:var(--fs-l);font-weight:800}
 .stats small{font-size:var(--fs-xs);color:var(--tx2)}
 .btns{display:flex;gap:var(--sp2);margin-top:var(--sp3)}
-.btns button{flex:1}
+.btns button{flex:1;line-height:1.2;padding:var(--sp1) var(--sp3)}
 .danger{background:var(--bad-bg);color:var(--bad)}
 .small{font-size:var(--fs-xs);color:var(--tx2)}
 .exsvg{width:100%;height:auto;background:#101216;border-radius:var(--r2);margin:var(--sp2) 0;display:block}
@@ -241,7 +241,6 @@ main{max-width:var(--maxw);margin:0 auto;padding:var(--sp4) calc(var(--sar) + va
 .sep{stroke:#2c313a;stroke-width:1}
 .lbl{fill:#a9aeb7;font-size:9px;font-weight:700;text-anchor:middle;letter-spacing:1px}
 .mus .lbl{font-size:10px}
-.lev{stroke:#7b8494;stroke-width:2;fill:none}
 h2{font-size:var(--fs-xl);margin:0;line-height:1.15}
 h3{font-size:var(--fs-xs);letter-spacing:.5px;color:var(--acc);margin:var(--sp4) 0 6px;font-weight:800;text-transform:uppercase}
 ul{margin:0;padding-left:20px}li{margin-bottom:7px}
@@ -306,7 +305,6 @@ thead th:first-child{position:sticky;left:0;z-index:1;background:var(--s1)}
 thead .ccur{color:var(--tx)}
 .gold{margin-top:var(--sp2)}
 pre{white-space:pre-wrap;background:var(--s2);padding:10px;border-radius:10px;font-size:var(--fs-xs);margin:var(--sp2) 0 0}
-.status{font-size:var(--fs-xs);color:var(--tx2);margin-top:6px}
 .legend{display:flex;gap:var(--sp3);font-size:var(--fs-xs);color:var(--tx2);margin:6px 0;flex-wrap:wrap}
 .legend span{display:inline-flex;align-items:center;gap:5px}
 .sw{width:14px;height:14px;border-radius:3px;display:inline-block}
@@ -826,7 +824,6 @@ function sessProgress(){
 /* Le contenu réserve sous lui la hauteur réelle du dock (minuteur + onglets + zone d'accueil iOS) */
 new ResizeObserver(([e])=>document.documentElement.style.setProperty('--dock-h',Math.ceil(e.target.getBoundingClientRect().height)+'px')).observe($('dock'));
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
-function presc(e){return `${e.sets} × ${e.reps} · RIR ${e.rir} · tempo ${e.tempo}`+(e.rest?` · repos ${fmt(e.rest)}`:'');}
 function fmt(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
 
 let CUR={};
@@ -965,7 +962,7 @@ function recapHtml(){
   return `<section class="recap" id="recap" aria-labelledby="rcT"><h2 id="rcT">Fin de séance</h2>
 <div class="stats"><div><b id="rcDur" class="tn">—</b><small>durée</small></div><div><b id="rcSets" class="tn">0/0</b><small>séries</small></div><div><b id="rcVol" class="tn">0</b><small>kg de volume</small></div></div>
 <p class="small">Ton texte à coller dans tes notes. Il reprend toutes les semaines saisies.</p>
-<div class="btns"><button class="acc" onclick="exportTxt()">Copier le journal</button><button class="danger" onclick="resetWeek()">Effacer cette séance</button></div><pre id="exp" hidden></pre></section>`;
+<div class="btns"><button class="acc" onclick="exportTxt()">Copier le journal</button><button class="danger" onclick="resetWeek()" aria-label="Effacer cette séance">Effacer</button></div><pre id="exp" hidden></pre></section>`;
 }
 
 /* ---------- Saisie, sans rendu complet ---------- */
