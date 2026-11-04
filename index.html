@@ -227,6 +227,15 @@ main{max-width:var(--maxw);margin:0 auto;padding:var(--sp4) calc(var(--sar) + va
 .set.act .sn{color:var(--acc)}
 .pfoot{display:flex;justify-content:flex-end;margin-top:var(--sp3)}
 .restbtn{display:inline-flex;align-items:center;gap:var(--sp2);background:var(--rest-bg);color:var(--rest)}
+/* Repères de saisie */
+.set.norep input[data-f=r]{border:2px solid var(--acc)}
+.set.norep input[data-f=r]::placeholder{color:var(--acc2)}
+.set.under input[data-f=r]{color:var(--bad)}
+.last .under{color:var(--bad)}
+.last .dlh,.last .ceil{display:block;margin-top:var(--sp1);font-size:var(--fs-xs);font-weight:700}
+.last .dlh{color:var(--dl)}.last .ceil{color:var(--ok)}
+.rcwarn{margin:var(--sp2) 0 0;font-size:var(--fs-s);font-weight:700;color:var(--acc2)}
+.rcwarn[hidden]{display:none}
 /* Fin de séance */
 .recap{background:var(--s1);border:1px solid var(--line);border-radius:var(--r3);padding:var(--sp4);margin-top:var(--sp5);scroll-margin-top:calc(var(--sat) + 64px)}
 .recap.complete{border-color:var(--ok);box-shadow:0 0 0 1px var(--ok)}
@@ -793,6 +802,22 @@ function lastBandIn(logs,ex,week){
   for(const k in logs){const [w,,x,i]=k.split('|');if(x===ex&&i==='b'&&+w<week&&+w>w0&&logs[k].v){w0=+w;v=logs[k].v;}}
   return v;
 }
+/* Fourchette « 6-10 », « 8-12 / jambe » → [6,10] ; null si ce n'est pas une fourchette (max, négatives…) */
+function repRange(reps){const m=/^(\d+)\s*-\s*(\d+)/.exec(String(reps||''));return m?[+m[1],+m[2]]:null;}
+/* Série cochée sans reps : 'norep' ; cochée sous le bas de la fourchette : 'under' ; sinon '' */
+function setFlag(s,reps){if(!s||!s.ok)return '';const r=numv(s.r);if(r==null)return 'norep';const g=repRange(reps);return g&&r<g[0]?'under':'';}
+/* L'exercice tel qu'il était prescrit telle semaine, tel jour (une ancienne séance se juge avec sa propre fourchette) */
+function prescribed(week,day,ex){if(!SESS[day])return null;for(const P of buildModel(week,day))for(const m of P.exs)if(m.ex===ex)return m;return null;}
+/* Plafond atteint la dernière fois : toutes les séries prévues cochées au haut de la fourchette,
+   avec la même prescription qu'aujourd'hui et hors décharge. C'est la condition de la règle d'or, RIR excepté (non saisi). */
+function ceilingHit(lt,then,now){
+  if(!lt||lt.dl||!then||!now||now.deload||then.reps!==now.reps||then.sets!==now.sets)return false;
+  const g=repRange(now.reps);if(!g)return false;
+  for(let i=0;i<now.sets;i++){const s=lt.sets[i],r=s&&s.ok?numv(s.r):null;if(r==null||r<g[1])return false;}
+  return true;
+}
+/* Décharge : −15 % de charge (règle affichée par l'app), arrondi au 0,5 kg */
+const deloadLoad=v=>Math.round(v*0.85*2)/2;
 /* Meilleure charge saisie par semaine, tous jours confondus */
 function bestByWeekIn(logs,ex){
   const b={};
@@ -1094,9 +1119,12 @@ const lastBand=ex=>lastBandIn(state.logs,ex,state.week);
 const setTxt=s=>s.w?`${disp(s.w)}×${s.r||'—'}`:`${s.r} reps`;
 function phW(m,i,lt){
   for(let j=i-1;j>=0;j--){const v=getSet(m.ex,j).w;if(v)return disp(v);}
-  if(lt){const s=lt.sets[i]||lt.sets.filter(Boolean).pop();if(s&&s.w)return disp(s.w);}
+  if(lt){const s=lt.sets[i]||lt.sets.filter(Boolean).pop(),v=s&&numv(s.w);
+    if(v!=null)return disp(dlCut(m,lt)?deloadLoad(v):s.w);}
   return m.wl||'kg';
 }
+/* En décharge, la charge de la dernière semaine normale est réduite de 15 % ; un lest (+kg) n'est pas touché */
+const dlCut=(m,lt)=>m.deload&&lt&&!lt.dl&&m.wl!=='+kg';
 function phR(m,i,lt){const s=lt&&lt.sets[i];return s&&s.r?s.r:'reps';}
 const wuMin=s=>+((s.wu.match(/(\d+)\s*min/)||[0,4])[1]);
 
@@ -1151,7 +1179,12 @@ function exBlock(m,P){
   let h=`<div class="exb"><div class="exh"><span class="badge">${m.tag}</span><h3 class="exn">${esc(m.name)}</h3><button class="fiche" onclick="openEx('${m.ex}')" aria-label="Fiche : ${esc(m.name)}">Fiche</button></div>
 <ul class="pills" aria-label="Prescription"><li>${m.sets} × ${esc(m.reps)}</li><li>RIR ${m.rir}</li><li>tempo ${esc(m.tempo)}</li>${rest}${m.deload?'<li class="pdl">décharge</li>':''}</ul>
 <p class="equip">${esc(m.equip)}</p>`;
-  if(lt)h+=`<p class="last"><span>La dernière fois · S${lt.w}${lt.d!==state.day?' '+dayLabel(lt.d).toLowerCase():''}${lt.dl?' (décharge)':''}</span><b class="tn">${lt.sets.filter(Boolean).map(setTxt).join(' · ')}</b></p>`;
+  if(lt){const then=prescribed(lt.w,lt.d,m.ex),reps=then?then.reps:m.reps;
+    const sets=lt.sets.filter(Boolean).map(s=>setFlag(s,reps)==='under'?`<span class="under">${setTxt(s)}<span class="vh"> (sous la fourchette)</span></span>`:setTxt(s)).join(' · ');
+    const w0=numv((lt.sets.find(s=>s&&numv(s.w)!=null)||{}).w);
+    h+=`<p class="last"><span>La dernière fois · S${lt.w}${lt.d!==state.day?' '+dayLabel(lt.d).toLowerCase():''}${lt.dl?' (décharge)':''}</span><b class="tn">${sets}</b>`
+      +(dlCut(m,lt)&&w0!=null?`<span class="dlh">Décharge −15 % : ${disp(w0)} → ${disp(deloadLoad(w0))} kg</span>`:'')
+      +(ceilingHit(lt,then,m)?`<span class="ceil">↑ Plafond atteint partout : palier suivant (règle d'or), si c'était au RIR ${esc(m.rir)}.</span>`:'')+'</p>';}
   if(m.band){const b=getSet(m.ex,'b');
     h+=`<div class="bandrow"><label for="bd-${m.ex}">Élastique</label><input id="bd-${m.ex}" type="text" autocomplete="off" value="${esc(b.v??'')}" placeholder="${esc(lastBand(m.ex)||'ex. noir épais, 30-60 kg')}" oninput="setField('${m.ex}','b','v',this.value)"></div>`;}
   h+=`<div class="sets" role="group" aria-label="Séries : ${esc(m.name)}"><div class="shd" aria-hidden="true"><span>#</span><span>${m.wl||'kg'}</span><span>reps</span><span>fait</span></div>`;
@@ -1161,9 +1194,10 @@ function exBlock(m,P){
 /* Ligne de série. Les gestes sont délégués (setInput, ACT.chk, ACT.bump) : rien n'est écrit dans des onclick */
 function setRow(m,i,lt){
   const s=getSet(m.ex,i),id=m.ex+'-'+i,n=i+1,st=(f,d,l)=>`<button data-act="bump" data-f="${f}" data-d="${d}" aria-label="${l}, série ${n}">${disp(d>0?'+'+d:'−'+(-d))}</button>`;
-  return `<div class="set${s.ok?' ok':''}" data-ex="${m.ex}" data-i="${i}"><span class="sn">${n}</span>
+  const fl=setFlag(s,m.reps);
+  return `<div class="set${s.ok?' ok':''}${fl?' '+fl:''}" data-ex="${m.ex}" data-i="${i}"><span class="sn">${n}</span>
 <input id="w-${id}" data-f="w" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="next" value="${esc(disp(s.w??''))}" placeholder="${esc(phW(m,i,lt))}" aria-label="${m.wl==='+kg'?'Lest':'Charge'} série ${n}">
-<input id="r-${id}" data-f="r" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" enterkeyhint="done" value="${esc(s.r??'')}" placeholder="${esc(phR(m,i,lt))}" aria-label="Répétitions série ${n}">
+<input id="r-${id}" data-f="r" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" enterkeyhint="done" value="${esc(s.r??'')}" placeholder="${fl==='norep'?'reps ?':esc(phR(m,i,lt))}" aria-label="Répétitions série ${n}"${fl==='norep'?' aria-invalid="true"':''}>
 <button class="chk" data-act="chk" aria-pressed="${!!s.ok}" aria-label="Série ${n} faite">${CHECK}</button>
 <div class="step stw">${m.wl==='—'?'':st('w',-2.5,'Moins 2,5 kg')+st('w',2.5,'Plus 2,5 kg')}</div>
 <div class="step str">${st('r',-1,'Une rep de moins')+st('r',1,'Une rep de plus')}</div></div>`;
@@ -1171,7 +1205,15 @@ function setRow(m,i,lt){
 const rowOf=el=>{const r=el.closest('.set');return r&&[r.dataset.ex,+r.dataset.i];};
 ACT.chk=b=>toggle(...rowOf(b));
 ACT.bump=b=>bump(...rowOf(b),b.dataset.f,+b.dataset.d);
-function setInput(el){const [ex,i]=rowOf(el);if(el.dataset.f==='w')inW(ex,i,el);else setField(ex,i,'r',el.value);}
+function setInput(el){const [ex,i]=rowOf(el);if(el.dataset.f==='w')inW(ex,i,el);else{setField(ex,i,'r',el.value);updFlag(ex,i);updRecap();}}
+/* Repère « reps ? » (cochée sans reps) ou « sous la fourchette » sur la ligne, mis à jour sans tout redessiner */
+function updFlag(ex,i){
+  const row=document.querySelector(`.set[data-ex="${ex}"][data-i="${i}"]`),m=CUR[ex];if(!row||!m)return;
+  const f=setFlag(getSet(ex,i),m.reps),r=row.querySelector('[data-f=r]');
+  row.classList.toggle('norep',f==='norep');row.classList.toggle('under',f==='under');
+  if(f==='norep')r.setAttribute('aria-invalid','true');else r.removeAttribute('aria-invalid');
+  r.placeholder=f==='norep'?'reps ?':phR(m,i,LT[ex]);
+}
 document.addEventListener('input',e=>{if(e.target.matches('.set input'))setInput(e.target);});
 document.addEventListener('focusin',e=>{if(e.target.matches('.set input'))setAct(e.target);});
 function recapHtml(){
@@ -1179,6 +1221,7 @@ function recapHtml(){
 <div class="stats"><div><b id="rcDur" class="tn">—</b><small>durée</small></div><div><b id="rcSets" class="tn">0/0</b><small>séries</small></div><div><b id="rcVol" class="tn">0</b><small>kg de volume</small></div></div>
 <p class="small">Ton texte à coller dans tes notes. Il reprend toutes les semaines saisies. Pour pouvoir restaurer, utilise plutôt la sauvegarde fichier (onglet Plan).</p>
 <p class="bkst" id="rcBk" hidden></p>
+<p class="rcwarn" id="rcWarn" hidden></p>
 <div class="btns"><button class="acc" onclick="exportTxt()">Copier le journal</button><button class="danger" onclick="resetWeek()" aria-label="Effacer cette séance">Effacer</button></div><pre id="exp" hidden></pre></section>`;
 }
 
@@ -1202,7 +1245,7 @@ function toggle(ex,i){
   const on=!getSet(ex,i).ok,row=document.querySelector(`.set[data-ex="${ex}"][data-i="${i}"]`);
   if(on&&row){/* cocher une série vide reprend la charge indiquée */
     const w=$('w-'+ex+'-'+i);if(!w.value&&numv(w.placeholder)!=null){w.value=w.placeholder;setField(ex,i,'w',w.placeholder.replace(',','.'));refreshPh(ex,i);}}
-  setOk(ex,i,on);
+  setOk(ex,i,on);updFlag(ex,i);
   if(row){row.classList.toggle('ok',on);const c=row.querySelector('.chk');c.setAttribute('aria-pressed',on);if(on){c.classList.remove('pop');c.getBoundingClientRect();c.classList.add('pop');}}
   if(document.activeElement&&row&&row.contains(document.activeElement)&&document.activeElement.tagName==='INPUT')document.activeElement.blur();
   if(on)sessionStart();
@@ -1231,6 +1274,10 @@ function updRecap(){
   const p=sessProgress();let vol=0;
   MODEL.forEach(P=>P.exs.forEach(m=>{if(m.wl)return;for(let i=0;i<m.sets;i++){const s=getSet(m.ex,i);if(s.ok)vol+=(numv(s.w)||0)*(numv(s.r)||0);}}));
   $('rcSets').textContent=p.done+'/'+p.total;
+  /* Séries à reprendre : cochées sans reps (le volume et la progression les ignorent), ou sous la fourchette */
+  let nr=0,un=0;MODEL.forEach(P=>P.exs.forEach(m=>{for(let i=0;i<m.sets;i++){const f=setFlag(getSet(m.ex,i),m.reps);if(f==='norep')nr++;if(f==='under')un++;}}));
+  const wn=$('rcWarn'),pl=n=>n>1?'s':'';wn.hidden=!(nr||un);
+  wn.textContent=[nr?`${nr} série${pl(nr)} cochée${pl(nr)} sans reps : touche « reps ? » pour compléter.`:'',un?`${un} série${pl(un)} sous la fourchette.`:''].filter(Boolean).join(' ');
   $('rcVol').textContent=Math.round(vol).toLocaleString('fr-FR');
   $('recap').classList.toggle('complete',p.total>0&&p.done===p.total);
   const s=sess();$('rcDur').textContent=s?fmtDur((s.t1||Math.min(Date.now(),s.t0+STALE))-s.t0):'—';

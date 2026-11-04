@@ -93,3 +93,37 @@ test('restAfter : règle des supersets', () => {
   assert.equal(L.restAfter(M, ok(new Set(['lat_raise0', 'incline_db0'])), 'incline_db', 0).sec, 75, 'A2 déjà fait : repos après A1');
   assert.equal(L.restAfter(M, ok(new Set()), 'bench', 0).sec, 150, 'poste simple');
 });
+
+test('repRange : fourchettes du programme', () => {
+  eq(L.repRange('6-10'), [6, 10]); eq(L.repRange('8-12 / jambe'), [8, 12]); eq(L.repRange('4-6'), [4, 6]);
+  assert.equal(L.repRange('max ×3 puis 3 nég. ×2'), null); assert.equal(L.repRange(''), null);
+  for (const n in L.EX) if (!/max/.test(L.EX[n].reps)) assert.ok(L.repRange(L.EX[n].reps), `${n} : ${L.EX[n].reps}`);
+});
+
+test('setFlag : cochée sans reps, sous la fourchette', () => {
+  assert.equal(L.setFlag({ w: '60', ok: true }, '6-10'), 'norep');
+  assert.equal(L.setFlag({ w: '60', r: '5', ok: true }, '6-10'), 'under');
+  assert.equal(L.setFlag({ w: '60', r: '6', ok: true }, '6-10'), '');
+  assert.equal(L.setFlag({ w: '60', r: '3' }, '6-10'), '', 'non cochée : rien à signaler');
+  assert.equal(L.setFlag({ r: '2', ok: true }, 'max ×3 puis 3 nég. ×2'), '', 'pas de fourchette');
+});
+
+test('deloadLoad : −15 % arrondi au 0,5 kg', () => {
+  assert.equal(L.deloadLoad(60), 51); assert.equal(L.deloadLoad(62.5), 53); assert.equal(L.deloadLoad(20), 17);
+});
+
+test('ceilingHit : toutes les séries au plafond, même prescription, hors décharge', () => {
+  const now = L.prescribed(3, 'lun', 'bench'); // bloc 1 : 3 × 6-10
+  const sets = r => r.map(x => ({ w: '60', r: String(x), ok: true }));
+  const lt = r => ({ w: 2, d: 'lun', dl: false, sets: sets(r) });
+  const then = L.prescribed(2, 'lun', 'bench');
+  assert.equal(L.ceilingHit(lt([10, 10, 10]), then, now), true);
+  assert.equal(L.ceilingHit(lt([10, 10, 9]), then, now), false, 'une série sous le plafond');
+  assert.equal(L.ceilingHit(lt([10, 10]), then, now), false, 'série manquante');
+  assert.equal(L.ceilingHit({ ...lt([10, 10, 10]), dl: true }, then, now), false, 'la dernière fois était une décharge');
+  assert.equal(L.ceilingHit(lt([10, 10, 10]), then, L.prescribed(6, 'lun', 'bench')), false, 'aujourd\'hui : décharge');
+  assert.equal(L.ceilingHit(lt([12, 12, 12, 12]), L.prescribed(8, 'lun', 'bench'), L.prescribed(15, 'lun', 'bench')), false, 'la fourchette a changé de bloc');
+  const nonCoche = lt([10, 10, 10]); nonCoche.sets[2].ok = false;
+  assert.equal(L.ceilingHit(nonCoche, then, now), false, 'série non cochée');
+  assert.equal(L.prescribed(3, 'mer', 'bench'), null);
+});
