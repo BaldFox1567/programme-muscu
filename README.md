@@ -10,7 +10,9 @@ Application web de suivi de musculation sur 52 semaines, pensée pour être util
 2. Toucher **Partager** → **Sur l'écran d'accueil**.
 3. Lancer l'app depuis l'icône : elle s'ouvre en plein écran.
 
-Les données saisies restent sur le téléphone (stockage local du navigateur). Pense à exporter le journal régulièrement.
+Saisis toujours depuis l'icône : sur iPhone, l'app de l'écran d'accueil et la même page ouverte dans Safari ne partagent pas leurs données.
+
+Les données saisies restent sur le téléphone (stockage local du navigateur). Enregistre une **sauvegarde fichier** régulièrement (onglet Plan → Sauvegarde) : c'est elle qui permet de tout récupérer sur un autre téléphone ou après un effacement.
 
 ## Fonctionnalités
 
@@ -20,14 +22,24 @@ Les données saisies restent sur le téléphone (stockage local du navigateur). 
 - **Chrono de séance** sur 45 min avec indicateur de rythme par poste, minuteur d'échauffement, écran maintenu allumé
 - **Saisie des charges** et des répétitions série par série, avec la perf de la semaine précédente en rappel
 - **Plan annuel** (un tap sur une semaine l'ouvre) et **courbes de progression**
-- **Export du journal** (copie en texte)
+- **Sauvegarde et restauration** : fichier JSON complet par la feuille de partage (Fichiers, iCloud, Mail), restauration avec aperçu avant remplacement, copies automatiques sur le téléphone. Export texte pour les notes.
+- **Sauvegarde protégée** : si elle ne peut pas être lue, l'app n'écrit plus rien et propose de repartir d'une copie ; un échec d'écriture est signalé
+- **Hors ligne** : une fois l'app ouverte une fois, elle se recharge sans réseau
+- **Repères en séance** : série cochée sans reps, charge de décharge (−15 %), plafond de fourchette atteint, séries sous la fourchette
+- **Progression** : meilleure série par semaine, 1RM estimé (Epley), cible de fin de bloc
 
 ## Technique
 
-- Un seul fichier : `index.html` (HTML, CSS et JavaScript inline)
+- `index.html` : toute l'app (HTML, CSS et JavaScript inline), autonome et ouvrable seule
+- `sw.js` : copie hors ligne de la page pour GitHub Pages. Facultatif : sans lui, l'app marche en ligne comme avant ; il ne touche jamais au journal
 - Zéro dépendance externe (l'icône d'écran d'accueil est un PNG inline généré par `outils/icone.mjs`)
-- Zéro appel réseau : fonctionne hors ligne une fois la page chargée
-- Données stockées uniquement dans le `localStorage` du navigateur
+- Zéro appel réseau de l'app elle-même
+- Données dans le `localStorage` du navigateur (ou `window.storage` en artifact Claude), clé `muscu_bloc1_v1`, schéma versionné (`v`) avec migrations explicites. Copies de secours à côté : `__avant_v2` (sauvegarde d'origine), `__prec` (sauvegarde au premier lancement du jour), `__avant_import`, `__illisible`
+
+### Tests
+
+- `node --test` : logique du programme et schéma de sauvegarde. Le bloc de code entre `@pur:debut` et `@pur:fin` d'`index.html` est exécuté tel quel, sans dépendance.
+- `node outils/verifier.mjs [dossier] [--captures dossier]` : 17 scénarios de bout en bout dans Chromium à la taille d'un iPhone (perte de données, semaine, hors ligne, saisie). Demande Playwright ; l'app n'en dépend pas.
 
 ## Avertissement
 
