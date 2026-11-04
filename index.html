@@ -1301,7 +1301,7 @@ function bkAge(){
 function backupHtml(){
   return `<section class="bk" aria-labelledby="bkT"><h2 class="vt" id="bkT">Sauvegarde</h2>
 <p class="small">Ton journal n'existe que sur ce téléphone. Un fichier de sauvegarde le met à l'abri (Fichiers, iCloud, mail) et se restaure ici ou sur un autre téléphone.</p>
-<p class="bkst" id="bkSt">${bkAge()}</p>
+<p class="bkst" id="bkSt">${bkAge()}</p><p class="small" id="bkPers">${persTxt()}</p>
 <div class="btns"><button class="acc" data-act="bkSave">Enregistrer une sauvegarde</button><button data-act="bkOpen">Restaurer…</button></div>
 <div class="btns"><button data-act="bkCopy">Copier la sauvegarde (texte)</button></div>
 <h3>Copies automatiques sur ce téléphone</h3><div id="bkCopies"><p class="small">${hasStorage?'Lecture…':'Pas de stockage sur cet appareil.'}</p></div></section>`;
@@ -1644,6 +1644,19 @@ document.addEventListener('visibilitychange',()=>{
 });
 addEventListener('pagehide',()=>saveNow());
 function startWu(){const s=SESS[state.day];sessionStart();startTimer(wuMin(s)*60,s.label+' · '+s.sub,nextLabel(),'wu');}
+
+/* ---------- Hors ligne ---------- */
+/* GitHub Pages : sw.js garde une copie de l'app pour l'ouvrir sans réseau. Absent, refusé ou dans l'artifact Claude
+   (page dans un cadre) : rien ne change, l'app marche en ligne comme avant. */
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)&&window.top===window.self){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+  navigator.serviceWorker.addEventListener('message',e=>{if(e.data==='maj')toast('Nouvelle version de l\'app prête','Recharger',()=>{saveNow();location.reload();},12000);});
+  navigator.serviceWorker.ready.then(r=>r.active&&r.active.postMessage('maj?')).catch(()=>{});
+}
+/* Demande au navigateur de ne pas effacer le stockage de lui-même (accordé surtout à l'app de l'écran d'accueil) */
+let persisted=null;
+if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().then(ok=>{persisted=ok;const el=$('bkPers');if(el)el.textContent=persTxt();},()=>{});
+const persTxt=()=>persisted==null?'':persisted?'Stockage protégé du nettoyage automatique du navigateur.':"Stockage non protégé : le navigateur peut l'effacer s'il manque de place. Garde une sauvegarde fichier.";
 
 /* ---------- Démarrage ---------- */
 (async()=>{
