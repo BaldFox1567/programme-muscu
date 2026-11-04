@@ -995,6 +995,8 @@ function setStatus(t){const el=document.getElementById('status');if(el)el.textCo
 function lk(ex,i){return state.week+'|'+state.day+'|'+ex+'|'+i;}
 function getSet(ex,i){return state.logs[lk(ex,i)]||{};}
 function setField(ex,i,f,v){const k=lk(ex,i);state.logs[k]=Object.assign({},state.logs[k]||{},{[f]:v});save();}
+/* Coche : t garde l'heure réelle de la série (la clé ne dit que la semaine du programme) ; décocher l'efface */
+function setOk(ex,i,on){const k=lk(ex,i),s=Object.assign({},state.logs[k]||{},{ok:on});if(on)s.t=Date.now();else delete s.t;state.logs[k]=s;save();}
 
 /* ---------- SVG ---------- */
 function fig(p){
@@ -1193,7 +1195,7 @@ function toggle(ex,i){
   const on=!getSet(ex,i).ok,row=document.querySelector(`.set[data-ex="${ex}"][data-i="${i}"]`);
   if(on&&row){/* cocher une série vide reprend la charge indiquée */
     const w=$('w-'+ex+'-'+i);if(!w.value&&numv(w.placeholder)!=null){w.value=w.placeholder;setField(ex,i,'w',w.placeholder.replace(',','.'));refreshPh(ex,i);}}
-  setField(ex,i,'ok',on);
+  setOk(ex,i,on);
   if(row){row.classList.toggle('ok',on);const c=row.querySelector('.chk');c.setAttribute('aria-pressed',on);if(on){c.classList.remove('pop');c.getBoundingClientRect();c.classList.add('pop');}}
   if(document.activeElement&&row&&row.contains(document.activeElement)&&document.activeElement.tagName==='INPUT')document.activeElement.blur();
   if(on)sessionStart();
