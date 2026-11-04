@@ -316,6 +316,8 @@ textarea{width:100%;font:inherit;font-size:16px;color:inherit;background:var(--s
 .spk polyline{fill:none;stroke:var(--acc);stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
 .spk circle{fill:var(--acc);stroke:var(--s1);stroke-width:2;vector-effect:non-scaling-stroke}
 .spkb{stroke:var(--line2);stroke-width:1;vector-effect:non-scaling-stroke}
+.spk circle.dl{fill:var(--s1);stroke:var(--acc)}
+.tgt{margin-top:var(--sp2)}.tgt b{color:var(--tx)}.hit{color:var(--ok);font-weight:700}
 .spk.empty{border-style:dashed}
 .spk.empty p{margin:var(--sp1) 0 0}
 .tbl{overflow-x:auto;margin-top:var(--sp3);border:1px solid var(--line);border-radius:var(--r3);background:var(--s1)}
@@ -818,11 +820,35 @@ function ceilingHit(lt,then,now){
 }
 /* Décharge : −15 % de charge (règle affichée par l'app), arrondi au 0,5 kg */
 const deloadLoad=v=>Math.round(v*0.85*2)/2;
-/* Meilleure charge saisie par semaine, tous jours confondus */
-function bestByWeekIn(logs,ex){
-  const b={};
-  for(const k in logs){const [w,,x,i]=k.split('|');if(x!==ex||i==='b')continue;const v=numv(logs[k].w);if(v!=null&&v>0&&!(b[w]>=v))b[w]=v;}
-  return Object.keys(b).map(Number).sort((a,c)=>a-c).map(w=>[w,b[w]]);
+/* 1RM estimé (formule d'Epley, charge × (1 + reps/30)) : indicatif, peu fiable au-delà d'une douzaine de reps */
+const e1rm=(w,r)=>r<=1?w:w*(1+r/30);
+/* Meilleure série cochée de chaque semaine (charge et reps saisies), classée sur le 1RM estimé.
+   sansReps : séries cochées avec une charge mais sans reps, qu'on ne peut pas classer. */
+function bestSetsIn(logs,ex){
+  const b={};let sansReps=0;
+  for(const k in logs){
+    const [w,,x,i]=k.split('|'),s=logs[k];if(x!==ex||i==='b'||!s||!s.ok)continue;
+    const kg=numv(s.w),r=numv(s.r);if(kg==null||kg<=0)continue;
+    if(r==null||r<=0){sansReps++;continue;}
+    const e=e1rm(kg,r);if(!b[w]||e>b[w].e)b[w]={w:kg,r,e};
+  }
+  return {pts:Object.keys(b).map(Number).sort((a,c)=>a-c).map(w=>[w,Object.assign(b[w],{dl:isDL(w)})]),sansReps};
+}
+/* Cibles du tableau TARGETS écrites « charge × reps » : {w, r, txt} pour un exercice et un bloc, sinon null */
+const TARGET_ROW={bench:'Développé couché',squat:'Squat',bb_row:'Rowing barre',incline_bb:'Incliné barre'};
+function targetFor(ex,n){
+  const row=TARGETS.find(t=>t[0]===TARGET_ROW[ex]),m=row&&/^(\d+(?:[.,]\d+)?)\s*×\s*(\d+)$/.exec(row[n]||'');
+  return m?{w:numv(m[1]),r:+m[2],txt:row[n]}:null;
+}
+/* Cible atteinte si une série cochée du bloc a au moins la charge ET les reps visées ; best : meilleure série du bloc */
+function targetStatus(logs,ex,blk){
+  const t=targetFor(ex,blk.n);if(!t)return null;let best=null,hit=false;
+  for(const k in logs){
+    const [w,,x,i]=k.split('|'),s=logs[k];if(x!==ex||i==='b'||+w<blk.w[0]||+w>blk.w[1]||!s||!s.ok)continue;
+    const kg=numv(s.w),r=numv(s.r);if(kg==null||r==null)continue;
+    if(kg>=t.w&&r>=t.r)hit=true;if(!best||e1rm(kg,r)>e1rm(best.w,best.r))best={w:kg,r};
+  }
+  return {t,hit,best};
 }
 /* Repos à lancer après la série i de ex (isOk(ex,i) dit si une série est cochée).
    Superset : rien entre A1 et A2, le repos du superset après A2. null : pas de repos. */
@@ -1434,23 +1460,25 @@ function openWeek(w){state.week=w;state.pinned=w!==curWeek();openP.clear();save(
 /* ---------- Progression ---------- */
 function refIn(id,lab,ph){return `<div class="field"><label for="ref-${id}">${lab}</label><input id="ref-${id}" type="text" placeholder="${ph}" value="${esc(state.refs[id]||'')}" oninput="state.refs['${id}']=this.value;save()"></div>`;}
 const LIFTS=['bench','squat','incline_bb','bb_row','rdl','plurima_ohp'];
-/* Meilleure charge saisie par semaine, tous jours confondus */
-const bestByWeek=ex=>bestByWeekIn(state.logs,ex);
 function spark(ex){
-  const d=bestByWeek(ex),name=EX[ex].name;
-  if(!d.length)return `<div class="spk empty"><h3>${esc(name)}</h3><p class="small">Pas encore de données : tes charges apparaîtront ici dès la première série saisie.</p></div>`;
-  const W=300,H=64,P=6,w0=d[0][0],w1=Math.max(d[d.length-1][0],w0+1),vs=d.map(p=>p[1]),lo=Math.min(...vs),hi=Math.max(...vs),r=hi-lo||1;
+  const {pts:d,sansReps}=bestSetsIn(state.logs,ex),name=exName(ex),bc=blockOf(curWeek()),ts=targetStatus(state.logs,ex,bc),pl=n=>n>1?'s':'';
+  const tgt=ts?`<p class="small tgt">Cible fin de bloc ${bc.n} : <b>${esc(ts.t.txt)}</b> · ${ts.hit?'<span class="hit">atteinte ✓</span>':ts.best?`meilleure série du bloc : ${disp(ts.best.w)} × ${ts.best.r}`:'pas encore de série dans ce bloc'}</p>`:'';
+  const nr=sansReps?`<p class="small">${sansReps} série${pl(sansReps)} cochée${pl(sansReps)} sans reps, non comptée${pl(sansReps)}.</p>`:'';
+  if(!d.length)return `<div class="spk empty"><h3>${esc(name)}</h3><p class="small">Pas encore de données : ta meilleure série apparaîtra ici dès la première série cochée avec charge et reps.</p>${tgt}${nr}</div>`;
+  const W=300,H=64,P=6,w0=d[0][0],w1=Math.max(d[d.length-1][0],w0+1),vs=d.map(p=>p[1].e),lo=Math.min(...vs),hi=Math.max(...vs),r=hi-lo||1;
   const X=w=>P+(w-w0)/(w1-w0)*(W-2*P),Y=v=>hi===lo?H/2:H-P-(v-lo)/r*(H-2*P);
-  const pts=d.map(([w,v])=>[X(w).toFixed(1),Y(v).toFixed(1)]),last=d[d.length-1],delta=last[1]-d[0][1];
-  return `<div class="spk"><div class="spkh"><h3>${esc(name)}</h3><b class="tn">${disp(last[1])} kg</b></div>
-<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${esc(name)}, meilleure charge par semaine : ${d.map(([w,v])=>`S${w} ${disp(v)} kg`).join(', ')}"><line class="spkb" x1="0" x2="${W}" y1="${H-1}" y2="${H-1}"/><polyline points="${pts.map(p=>p.join(',')).join(' ')}"/>${d.map(([w,v],k)=>`<circle cx="${pts[k][0]}" cy="${pts[k][1]}" r="${k===d.length-1?4:2.5}"><title>S${w} : ${disp(v)} kg</title></circle>`).join('')}</svg>
-<p class="small tn">S${d[0][0]} → S${last[0]} · ${d.length} semaine${d.length>1?'s':''}${d.length>1?` · ${delta>=0?'+':'−'}${disp(Math.abs(delta))} kg`:''}</p></div>`;
+  const pts=d.map(([w,s])=>[X(w).toFixed(1),Y(s.e).toFixed(1)]),last=d[d.length-1][1],kg=v=>disp(Math.round(v));
+  const nd=d.filter(p=>!p[1].dl),delta=nd.length>1?nd[nd.length-1][1].e-nd[0][1].e:null;
+  return `<div class="spk"><div class="spkh"><h3>${esc(name)}</h3><b class="tn">${disp(last.w)} × ${last.r}</b></div>
+<p class="small tn">1RM estimé ${kg(last.e)} kg${delta!=null?` · ${delta>=0?'+':'−'}${kg(Math.abs(delta))} kg depuis S${nd[0][0]}`:''}</p>
+<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${esc(name)}, 1RM estimé par semaine : ${d.map(([w,s])=>`S${w} ${kg(s.e)} kg (${disp(s.w)} × ${s.r}${s.dl?', décharge':''})`).join(', ')}"><line class="spkb" x1="0" x2="${W}" y1="${H-1}" y2="${H-1}"/><polyline points="${pts.map(p=>p.join(',')).join(' ')}"/>${d.map(([w,s],k)=>`<circle class="${s.dl?'dl':''}" cx="${pts[k][0]}" cy="${pts[k][1]}" r="${k===d.length-1?4:2.5}"><title>S${w} : ${disp(s.w)} × ${s.r}, 1RM estimé ${kg(s.e)} kg</title></circle>`).join('')}</svg>
+<p class="small tn">S${d[0][0]} → S${d[d.length-1][0]} · ${d.length} semaine${pl(d.length)}${d.some(p=>p[1].dl)?' · ○ décharge':''}</p>${tgt}${nr}</div>`;
 }
 function vProg(){
   const bc=blockOf(curWeek());
   let h=`<h2 class="vt">Références</h2><p class="small">Tes charges de référence après la semaine de retest. Tout le reste du bloc part de là.</p><div class="grid2">`;
   h+=refIn('bench','Développé couché (kg × reps)','kg × reps')+refIn('squat','Squat (kg × reps)','kg × reps')+refIn('dl','Soulevé de terre (meilleur single)','kg')+refIn('pull','Tractions strictes (total 3 séries)','a+b+c')+refIn('bw','Poids du corps (kg, moy. semaine)','kg')+refIn('waist','Tour de taille au nombril (cm)','cm');
-  h+=`</div><h2 class="vt">Meilleure charge par semaine</h2><div class="spks">${LIFTS.map(spark).join('')}</div>`;
+  h+=`</div><h2 class="vt">Meilleure série par semaine</h2><p class="small">Série cochée au meilleur 1RM estimé (Epley : charge × (1 + reps/30)) : une tendance, pas un max à tenter, peu fiable au-delà de 12 reps. ○ décharge, exclue de l\'écart.</p><div class="spks">${LIFTS.map(spark).join('')}</div>`;
   h+=`<h2 class="vt">Paliers visés, bloc par bloc</h2><p class="small">Cibles indicatives : fin de bloc, dernière série de travail à RIR 1-2. Elles supposent que le poids monte (dernière ligne).</p><div class="tbl" tabindex="0" role="region" aria-label="Paliers visés, défilable"><table><thead><tr><th scope="col">Mouvement</th>${BLOCKS.map(b=>`<th scope="col" class="${b===bc?'ccur':''}"><i class="dot" style="background:${b.color}"></i>B${b.n}</th>`).join('')}</tr></thead><tbody>`;
   TARGETS.forEach(r=>{h+=`<tr><th scope="row">${r[0]}</th>${r.slice(1).map((c,k)=>`<td class="${BLOCKS[k]===bc?'ccur':''}">${c}</td>`).join('')}</tr>`;});
   h+=`</tbody></table></div><h2 class="vt">Règle d'or</h2><ul class="gold"><li>Une charge ne monte que si toutes les séries ont atteint le haut de la fourchette au RIR demandé.</li><li>Quand +10 kg est trop lourd : 4e série à l'ancienne charge pendant 2 semaines, puis retente.</li><li>À 18 kg d'haltères : reps → tempo → pause → 1,5 reps → variante barre. Dans cet ordre.</li></ul>`;

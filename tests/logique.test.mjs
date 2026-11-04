@@ -127,3 +127,29 @@ test('ceilingHit : toutes les séries au plafond, même prescription, hors déch
   assert.equal(L.ceilingHit(nonCoche, then, now), false, 'série non cochée');
   assert.equal(L.prescribed(3, 'mer', 'bench'), null);
 });
+
+test('bestSetsIn : meilleure série cochée par semaine, sur le 1RM estimé', () => {
+  const logs = {
+    '2|lun|bench|0': { w: '60', r: '10', ok: true },  // e1RM 80
+    '2|lun|bench|1': { w: '65', r: '6', ok: true },   // e1RM 78
+    '2|lun|bench|2': { w: '90', r: '1' },             // non cochée : ignorée
+    '3|lun|bench|0': { w: '62,5', ok: true },         // sans reps
+    '6|lun|bench|0': { w: '51', r: '8', ok: true },   // décharge
+    '2|lun|bench|b': { v: 'x' },
+  };
+  const r = L.bestSetsIn(logs, 'bench');
+  eq(r.pts.map(([w, s]) => [w, s.w, s.r, s.dl]), [[2, 60, 10, false], [6, 51, 8, true]]);
+  assert.equal(r.sansReps, 1);
+  assert.equal(Math.round(L.e1rm(60, 10)), 80); assert.equal(L.e1rm(100, 1), 100);
+});
+
+test('targetFor / targetStatus : cibles chiffrées du tableau, charge ET reps', () => {
+  eq(L.targetFor('bench', 1), { w: 55, r: 8, txt: '55 × 8' });
+  eq(L.targetFor('squat', 7), { w: 100, r: 5, txt: '100 × 5' });
+  assert.equal(L.targetFor('rdl', 1), null, 'pas de ligne pour cet exercice');
+  const b1 = L.BLOCKS[0];
+  const st = L.targetStatus({ '3|lun|bench|0': { w: '55', r: '7', ok: true }, '4|lun|bench|0': { w: '57,5', r: '6', ok: true } }, 'bench', b1);
+  assert.equal(st.hit, false, '55 × 7 et 57,5 × 6 ne valent pas 55 × 8');
+  const ok = L.targetStatus({ '5|lun|bench|0': { w: '55', r: '8', ok: true }, '9|lun|bench|0': { w: '70', r: '10', ok: true } }, 'bench', b1);
+  assert.equal(ok.hit, true); eq(ok.best, { w: 55, r: 8 }, 'la S9 est hors du bloc 1');
+});
