@@ -391,6 +391,7 @@ pre{white-space:pre-wrap;background:var(--s2);padding:10px;border-radius:10px;fo
 </div>
 
 <script>
+/* @pur:debut — Données et logique sans DOM ni stockage, jusqu'à @pur:fin. Les tests (node --test) exécutent ce bloc tel quel. */
 /* ---------- Données ---------- */
 const FLOOR='<line x1="0" y1="140" x2="110" y2="140" class="floor"/>';
 const BENCH_FLAT='<rect x="6" y="96" width="92" height="7" rx="2" class="p"/><rect x="14" y="103" width="5" height="37" class="p"/><rect x="70" y="103" width="5" height="37" class="p"/>';
@@ -713,13 +714,88 @@ const TARGETS=[
 ["Poids corporel","75 kg","76,5 kg","77,5 kg","79 kg","80 kg","81 kg","79-80 kg"]
 ];
 
+/* ---------- Logique pure ---------- */
+const DAYS=Object.keys(SESS);
+/* Séance de 45 min dont 4 min d'échauffement : le reste est partagé entre les postes */
+const CHRONO={min:45,wu:4};
+const isDL=w=>DELOADS.includes(w);
+const numv=v=>{const n=parseFloat(String(v??'').replace(',','.'));return isNaN(n)?null:n;};
+const disp=v=>v==null?'':String(v).replace('.',',');
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
+function fmt(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+/* Semaine du programme (1 à 52) à la date now, comptée depuis le lundi de début */
+function weekOf(start,now){const st=new Date(start+'T00:00:00');if(isNaN(st))return 1;
+  const w=Math.floor((now-st)/(7*864e5))+1;return Math.min(52,Math.max(1,w));}
+function blockOf(w){return BLOCKS.find(b=>w>=b.w[0]&&w<=b.w[1])||BLOCKS[0];}
+/* Un exercice du plan fusionné avec sa fiche pour une semaine donnée. Décharge : séries ÷ 2, RIR 4. */
+function mergedEx(it,week){
+  const ex=typeof it==='string'?it:it.ex;
+  const m=Object.assign({},EX[ex],typeof it==='string'?{}:it);m.ex=ex;
+  if(isDL(week)){m.sets=Math.max(1,Math.ceil(m.sets/2));m.rir="4";m.deload=true;}
+  return m;
+}
+/* Les postes d'une séance : exercices fusionnés, repère (1, 3·A1…), repos */
+function buildModel(week,day){
+  return PLAN[blockOf(week).n][day].map((it,p)=>{
+    const ss=!!it.ss;
+    const exs=(it.ss||[it]).map((x,k)=>{const m=mergedEx(x,week);m.tag=(p+1)+(ss?'·A'+(k+1):'');m.k=k;m.p=p;return m;});
+    return {p,ss,rest:ss?it.rest:exs[0].rest,exs};
+  });
+}
+/* Ordre réel des séries : un superset alterne A1, A2, A1, A2… */
+function seqOf(P){
+  const out=[];
+  if(P.ss){const n=Math.max(...P.exs.map(m=>m.sets));for(let i=0;i<n;i++)P.exs.forEach(m=>{if(i<m.sets)out.push([m,i]);});}
+  else P.exs.forEach(m=>{for(let i=0;i<m.sets;i++)out.push([m,i]);});
+  return out;
+}
+/* Séries prévues et cochées d'une séance */
+function progressOf(model,logs,week,day){
+  let total=0,done=0;
+  model.forEach(P=>seqOf(P).forEach(([m,i])=>{total++;const s=logs[week+'|'+day+'|'+m.ex+'|'+i];if(s&&s.ok)done++;}));
+  return {done,total};
+}
+/* Saisie la plus récente des semaines précédentes : hors décharge de préférence, même jour si possible */
+function lastTimeIn(logs,ex,week,day){
+  let best=null;
+  for(const k in logs){
+    const [w,d,x,i]=k.split('|');
+    if(x!==ex||i==='b'||+w>=week)continue;
+    const s=logs[k];if(!s||!(s.w||s.r))continue;
+    const score=(isDL(+w)?0:1000)+(+w)*2+(d===day?1:0);
+    if(!best||score>best.score)best={score,w:+w,d};
+  }
+  if(!best)return null;
+  const sets=[];
+  for(let i=0;i<12;i++){const s=logs[best.w+'|'+best.d+'|'+ex+'|'+i];if(s&&(s.w||s.r))sets[i]=s;}
+  return {w:best.w,d:best.d,sets,dl:isDL(best.w)};
+}
+function lastBandIn(logs,ex,week){
+  let w0=0,v='';
+  for(const k in logs){const [w,,x,i]=k.split('|');if(x===ex&&i==='b'&&+w<week&&+w>w0&&logs[k].v){w0=+w;v=logs[k].v;}}
+  return v;
+}
+/* Meilleure charge saisie par semaine, tous jours confondus */
+function bestByWeekIn(logs,ex){
+  const b={};
+  for(const k in logs){const [w,,x,i]=k.split('|');if(x!==ex||i==='b')continue;const v=numv(logs[k].w);if(v!=null&&v>0&&!(b[w]>=v))b[w]=v;}
+  return Object.keys(b).map(Number).sort((a,c)=>a-c).map(w=>[w,b[w]]);
+}
+/* Repos à lancer après la série i de ex (isOk(ex,i) dit si une série est cochée).
+   Superset : rien entre A1 et A2, le repos du superset après A2. null : pas de repos. */
+function restAfter(model,isOk,ex,i){
+  const P=model.find(P=>P.exs.some(m=>m.ex===ex));if(!P)return null;
+  const m=P.exs.find(m=>m.ex===ex);let r=m.rest,lab=m.name;
+  if(P.ss){const a2=P.exs[1];if(m.k===0&&i<a2.sets&&!isOk(a2.ex,i))return null;r=P.rest;lab=P.exs.map(m=>m.name).join(' + ');}
+  return r>0?{sec:r,label:lab,P}:null;
+}
+/* @pur:fin */
+
 /* ---------- État & stockage ---------- */
 const KEY='muscu_bloc1_v1';
 let state={view:'today',week:1,day:'lun',start:'2026-09-14',logs:{},refs:{},pinned:false,
   autoRest:true,timer:null,sessions:{}}; /* champs ajoutés par la refonte, absents des anciennes sauvegardes */
-function curWeek(){const st=new Date(state.start+'T00:00:00');if(isNaN(st))return 1;
-  const w=Math.floor((new Date()-st)/(7*864e5))+1;return Math.min(52,Math.max(1,w));}
-function blockOf(w){return BLOCKS.find(b=>w>=b.w[0]&&w<=b.w[1])||BLOCKS[0];}
+function curWeek(){return weekOf(state.start,new Date());}
 function syncWeek(){if(!state.pinned)state.week=curWeek();}
 /* Hors artifact Claude (ex. GitHub Pages) : repli sur localStorage */
 if(!window.storage){try{const ls=window.localStorage;ls.setItem('__t','1');ls.removeItem('__t');window.storage={get:async k=>({value:ls.getItem(k)}),set:async(k,v)=>{ls.setItem(k,v);}};}catch(e){}}
@@ -803,7 +879,7 @@ function render(){
   const bh=blockOf(state.week);
   document.documentElement.style.setProperty('--blk',bh.color);
   $('v-'+state.view).innerHTML=state.view==='today'?vToday():state.view==='year'?vYear():vProg();
-  if(state.view==='today')afterToday();else{MODEL=buildModel();updChrono();refreshPill();}
+  if(state.view==='today')afterToday();else{MODEL=model();updChrono();refreshPill();}
   renderHead();
 }
 function renderHead(){
@@ -816,75 +892,25 @@ function renderHead(){
   $('hBar').style.transform=`scaleX(${p.total?p.done/p.total:0})`;
 }
 /* Séries prévues et faites pour la séance affichée (semaine + jour) */
-function sessProgress(){
-  const items=PLAN[blockOf(state.week).n][state.day];let total=0,done=0;
-  items.forEach(it=>(it.ss||[it]).forEach(x=>{const ex=typeof x==='string'?x:x.ex;
-    const m=Object.assign({},EX[ex],typeof x==='string'?{}:x);
-    const n=DELOADS.includes(state.week)?Math.max(1,Math.ceil(m.sets/2)):m.sets;
-    total+=n;for(let i=0;i<n;i++)if(getSet(ex,i).ok)done++;}));
-  return {done,total};
-}
+function sessProgress(){return progressOf(buildModel(state.week,state.day),state.logs,state.week,state.day);}
 /* Le contenu réserve sous lui la hauteur réelle du dock (minuteur + onglets + zone d'accueil iOS) */
 new ResizeObserver(([e])=>document.documentElement.style.setProperty('--dock-h',Math.ceil(e.target.getBoundingClientRect().height)+'px')).observe($('dock'));
-function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
-function fmt(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
-
+/* CUR : exercices de la séance affichée, par clé (fiches, textes indicatifs) */
 let CUR={};
-function merged(it){
-  const ex=typeof it==='string'?it:it.ex;
-  const m=Object.assign({},EX[ex],typeof it==='string'?{}:it);
-  if(DELOADS.includes(state.week)){m.sets=Math.max(1,Math.ceil(m.sets/2));m.rir="4";m.deload=true;}
-  CUR[ex]=m;return m;
-}
 
 /* ---------- Vue Aujourd'hui ---------- */
-const isDL=w=>DELOADS.includes(w);
-const numv=v=>{const n=parseFloat(String(v??'').replace(',','.'));return isNaN(n)?null:n;};
-const disp=v=>v==null?'':String(v).replace('.',',');
 const CHECK='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 const CHEV='<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
 const ICON_T='<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg>';
 /* MODEL : les postes de la séance affichée ; LT : « la dernière fois » par exercice ; openP : postes terminés redépliés */
 let MODEL=[],LT={},openP=new Set();
 
-function buildModel(){
-  CUR={};
-  return PLAN[blockOf(state.week).n][state.day].map((it,p)=>{
-    const ss=!!it.ss;
-    const exs=(it.ss||[it]).map((x,k)=>{const m=merged(x);m.ex=typeof x==='string'?x:x.ex;m.tag=(p+1)+(ss?'·A'+(k+1):'');m.k=k;m.p=p;return m;});
-    return {p,ss,rest:ss?it.rest:exs[0].rest,exs};
-  });
-}
-/* Ordre réel des séries : un superset alterne A1, A2, A1, A2… */
-function seqOf(P){
-  const out=[];
-  if(P.ss){const n=Math.max(...P.exs.map(m=>m.sets));for(let i=0;i<n;i++)P.exs.forEach(m=>{if(i<m.sets)out.push([m,i]);});}
-  else P.exs.forEach(m=>{for(let i=0;i<m.sets;i++)out.push([m,i]);});
-  return out;
-}
+function model(){const M=buildModel(state.week,state.day);CUR={};M.forEach(P=>P.exs.forEach(m=>CUR[m.ex]=m));return M;}
 const nextSet=()=>MODEL.flatMap(seqOf).find(([m,i])=>!getSet(m.ex,i).ok);
 const posteDone=P=>seqOf(P).every(([m,i])=>getSet(m.ex,i).ok);
 
-/* Saisie la plus récente des semaines précédentes : hors décharge de préférence, même jour si possible */
-function lastTime(ex){
-  let best=null;
-  for(const k in state.logs){
-    const [w,d,x,i]=k.split('|');
-    if(x!==ex||i==='b'||+w>=state.week)continue;
-    const s=state.logs[k];if(!s||!(s.w||s.r))continue;
-    const score=(isDL(+w)?0:1000)+(+w)*2+(d===state.day?1:0);
-    if(!best||score>best.score)best={score,w:+w,d};
-  }
-  if(!best)return null;
-  const sets=[];
-  for(let i=0;i<12;i++){const s=state.logs[best.w+'|'+best.d+'|'+ex+'|'+i];if(s&&(s.w||s.r))sets[i]=s;}
-  return {w:best.w,d:best.d,sets,dl:isDL(best.w)};
-}
-function lastBand(ex){
-  let w0=0,v='';
-  for(const k in state.logs){const [w,,x,i]=k.split('|');if(x===ex&&i==='b'&&+w<state.week&&+w>w0&&state.logs[k].v){w0=+w;v=state.logs[k].v;}}
-  return v;
-}
+const lastTime=ex=>lastTimeIn(state.logs,ex,state.week,state.day);
+const lastBand=ex=>lastBandIn(state.logs,ex,state.week);
 const setTxt=s=>s.w?`${disp(s.w)}×${s.r||'—'}`:`${s.r} reps`;
 function phW(m,i,lt){
   for(let j=i-1;j>=0;j--){const v=getSet(m.ex,j).w;if(v)return disp(v);}
@@ -900,8 +926,8 @@ function vToday(){
 }
 function todayBody(){
   const s=SESS[state.day],b=blockOf(state.week),plan=PLAN[b.n],cw=curWeek(),dl=isDL(state.week),pinned=state.pinned&&state.week!==cw;
-  MODEL=buildModel();LT={};MODEL.forEach(P=>P.exs.forEach(m=>LT[m.ex]=lastTime(m.ex)));
-  const nser=MODEL.reduce((a,P)=>a+P.exs.length,0),per=Math.round(41/MODEL.length);
+  MODEL=model();LT={};MODEL.forEach(P=>P.exs.forEach(m=>LT[m.ex]=lastTime(m.ex)));
+  const nser=MODEL.reduce((a,P)=>a+P.exs.length,0),per=Math.round((CHRONO.min-CHRONO.wu)/MODEL.length);
   let opts='';
   BLOCKS.forEach(b=>{opts+=`<optgroup label="Bloc ${b.n} — ${b.name}">`;
     for(let w=b.w[0];w<=b.w[1];w++)opts+=`<option value="${w}" ${state.week===w?'selected':''}>Semaine ${w}${w===1?' (retest)':''}${isDL(w)?' (décharge)':''}</option>`;
@@ -915,7 +941,7 @@ ${pinned?`<button class="link" onclick="unpin()">Revenir à la semaine ${cw}</bu
 <p class="blkl"><i class="dot" aria-hidden="true"></i><span>Bloc ${b.n} — <b>${b.name}</b> · semaines ${b.w[0]} à ${b.w[1]} · RIR ${b.rir}${pinned?` · <b>semaine figée</b>, aujourd'hui c'est la ${cw}`:''}</span></p>
 <p>${esc(plan.note)}</p>
 <h4>Échauffement</h4><p>${esc(s.wu)}</p><button class="restbtn wub" onclick="startWu()">${ICON_T}Lancer l'échauffement ${wuMin(s)} min</button>
-<h4>Chrono</h4><p><b>${s.label} — ${s.sub}, 45 min chrono.</b> ${MODEL.length} postes, ${nser} exercices. Échauffement jusqu'à 4 min, puis environ ${per} min par poste. Tu dois avoir fini le poste 2 à la moitié du temps.</p>
+<h4>Chrono</h4><p><b>${s.label} — ${s.sub}, ${CHRONO.min} min chrono.</b> ${MODEL.length} postes, ${nser} exercices. Échauffement jusqu'à ${CHRONO.wu} min, puis environ ${per} min par poste. Tu dois avoir fini le poste 2 à la moitié du temps.</p>
 ${state.week===1?`<h4>Retest</h4><p>Semaine de retest : développé couché lundi, squat technique jeudi (goblet + barre à vide), soulevé de terre jeudi. Le retest remplace les séries de travail du 1er exercice.</p>`:''}
 ${dl?`<h4>Décharge</h4><p>Décharge : les séries sont déjà divisées par deux ci-dessous et le RIR passé à 4. Enlève 15 % de charge sur tout. Même durée, même ordre, tu sors frais.</p>`:''}
 <h4>Minuteur</h4><label class="swrow"><span class="grow"><b>Repos automatique</b><small>Cocher une série lance le repos de l'exercice</small></span><input type="checkbox" role="switch" class="switch" ${state.autoRest?'checked':''} onchange="state.autoRest=this.checked;save()"></label>
@@ -1080,11 +1106,7 @@ function openWeek(w){state.week=w;state.pinned=w!==curWeek();openP.clear();save(
 function refIn(id,lab,ph){return `<div class="field"><label for="ref-${id}">${lab}</label><input id="ref-${id}" type="text" placeholder="${ph}" value="${esc(state.refs[id]||'')}" oninput="state.refs['${id}']=this.value;save()"></div>`;}
 const LIFTS=['bench','squat','incline_bb','bb_row','rdl','plurima_ohp'];
 /* Meilleure charge saisie par semaine, tous jours confondus */
-function bestByWeek(ex){
-  const b={};
-  for(const k in state.logs){const [w,,x,i]=k.split('|');if(x!==ex||i==='b')continue;const v=numv(state.logs[k].w);if(v!=null&&v>0&&!(b[w]>=v))b[w]=v;}
-  return Object.keys(b).map(Number).sort((a,c)=>a-c).map(w=>[w,b[w]]);
-}
+const bestByWeek=ex=>bestByWeekIn(state.logs,ex);
 function spark(ex){
   const d=bestByWeek(ex),name=EX[ex].name;
   if(!d.length)return `<div class="spk empty"><h3>${esc(name)}</h3><p class="small">Pas encore de données : tes charges apparaîtront ici dès la première série saisie.</p></div>`;
@@ -1247,10 +1269,8 @@ function nextLabel(P){
 /* Repos automatique. Superset : rien entre A1 et A2, puis le repos du superset après A2 */
 function autoRest(ex,i){
   if(!state.autoRest||!nextSet())return;
-  const P=MODEL.find(P=>P.exs.some(m=>m.ex===ex)),m=P.exs.find(m=>m.ex===ex);
-  let r=m.rest,lab=m.name;
-  if(P.ss){const a2=P.exs[1];if(m.k===0&&i<a2.sets&&!getSet(a2.ex,i).ok)return;r=P.rest;lab=P.exs.map(m=>m.name).join(' + ');}
-  if(r>0)startTimer(r,lab,nextLabel(P));
+  const r=restAfter(MODEL,(x,j)=>!!getSet(x,j).ok,ex,i);
+  if(r)startTimer(r.sec,r.label,nextLabel(r.P));
 }
 
 /* ---------- Alerte de fin de repos (plein écran : pas de vibration sur iPhone) ---------- */
@@ -1306,10 +1326,10 @@ function sessionCheckEnd(){
 }
 const fmtDur=ms=>{const m=Math.round(ms/60000);return m<60?m+' min':Math.floor(m/60)+' h '+String(m%60).padStart(2,'0');};
 function chronoHtml(){
-  const per=41/MODEL.length,ticks=MODEL.map((P,k)=>`<i class="ctick" style="left:${(4+(k+1)*per)/45*100}%"></i>`).join('');
-  return `<div class="chrono" id="chrono"><div class="crow"><div class="cel"><b id="cEl" class="tn">0:00</b><small>/ 45 min</small></div><span class="pace" id="cPace"></span><button id="cBtn" class="cbtn" onclick="sessionStart(true)">Démarrer</button></div>
-<div class="ctrack" aria-hidden="true"><i class="cwu" style="width:${4/45*100}%"></i>${ticks}<i class="chalf"></i><i class="cfill" id="cFill"></i><i class="cneedle" id="cNeedle"></i></div>
-<div class="clab" aria-hidden="true"><span style="width:${4/45*100}%">éch.</span>${MODEL.map(P=>`<span style="width:${per/45*100}%">P${P.p+1}</span>`).join('')}</div></div>`;
+  const {min:T,wu:W}=CHRONO,per=(T-W)/MODEL.length,ticks=MODEL.map((P,k)=>`<i class="ctick" style="left:${(W+(k+1)*per)/T*100}%"></i>`).join('');
+  return `<div class="chrono" id="chrono"><div class="crow"><div class="cel"><b id="cEl" class="tn">0:00</b><small>/ ${T} min</small></div><span class="pace" id="cPace"></span><button id="cBtn" class="cbtn" onclick="sessionStart(true)">Démarrer</button></div>
+<div class="ctrack" aria-hidden="true"><i class="cwu" style="width:${W/T*100}%"></i>${ticks}<i class="chalf"></i><i class="cfill" id="cFill"></i><i class="cneedle" id="cNeedle"></i></div>
+<div class="clab" aria-hidden="true"><span style="width:${W/T*100}%">éch.</span>${MODEL.map(P=>`<span style="width:${per/T*100}%">P${P.p+1}</span>`).join('')}</div></div>`;
 }
 let cInt=null;
 function updChrono(){
@@ -1321,16 +1341,16 @@ function updChrono(){
   if(active&&!cInt)cInt=setInterval(updChrono,1000);
   if(!active&&cInt){clearInterval(cInt);cInt=null;}
   if(!s){$('cEl').textContent='0:00';$('cPace').textContent='Démarre à la 1re série cochée';$('cPace').className='pace';$('cFill').style.transform='scaleX(0)';$('cNeedle').style.transform='translateX(0)';updRecap();return;}
-  const ms=(s.t1||Math.min(now,s.t0+STALE))-s.t0,min=ms/60000,per=41/MODEL.length;
+  const {min:T,wu:W}=CHRONO,ms=(s.t1||Math.min(now,s.t0+STALE))-s.t0,min=ms/60000,per=(T-W)/MODEL.length;
   let doneP=0;MODEL.forEach(P=>{const sq=seqOf(P);doneP+=sq.filter(([m,i])=>getSet(m.ex,i).ok).length/sq.length;});
-  const planned=4+doneP*per,delta=planned-min;
+  const planned=W+doneP*per,delta=planned-min;
   $('cEl').textContent=fmt(Math.floor(ms/1000));
-  $('cFill').style.transform=`scaleX(${Math.min(1,doneP?planned/45:0)})`;
-  $('cNeedle').style.transform=`translateX(${Math.min(100,min/45*100)}%)`;
+  $('cFill').style.transform=`scaleX(${Math.min(1,doneP?planned/T:0)})`;
+  $('cNeedle').style.transform=`translateX(${Math.min(100,min/T*100)}%)`;
   let txt,cl='';
   if(s.t1){txt='Terminé en '+fmtDur(ms);cl='ok';}
   else if(!active){txt='Séance non terminée';}
-  else if(!doneP&&min<=4){txt='Échauffement';}
+  else if(!doneP&&min<=W){txt='Échauffement';}
   else{const pi=MODEL.findIndex(P=>!posteDone(P))+1,d=Math.round(Math.abs(delta));
     txt=`Poste ${pi}/${MODEL.length} · `+(delta>=1?`en avance de ${d} min`:delta<=-1?`en retard de ${d} min`:'dans le temps');cl=delta<=-1?'bad':'ok';}
   $('cPace').textContent=txt;$('cPace').className='pace '+cl;
