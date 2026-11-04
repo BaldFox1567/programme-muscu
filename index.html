@@ -67,6 +67,7 @@ input,select{background:var(--s2);border:1px solid var(--line2);border-radius:va
 .pbar{position:absolute;left:0;right:0;bottom:-1px;height:3px;overflow:hidden}
 .pbar i{display:block;height:100%;background:var(--blk);transform-origin:0 50%;transform:scaleX(0);transition:transform var(--d3) var(--ease)}
 
+#top.unsaved .pbar{background:var(--bad);height:4px}
 /* Bandeau de verrou : la sauvegarde n'a pas pu être lue, rien n'est écrit */
 .lock{max-width:var(--maxw);margin:var(--sp2) auto 0;background:var(--bad-bg);border:1px solid var(--bad);border-radius:var(--r2);padding:var(--sp2) var(--sp3);font-size:var(--fs-s)}
 .lock[hidden]{display:none}
@@ -892,8 +893,17 @@ async function write(){
   clearTimeout(saveT);
   if(!hasStorage||lock||!dirty)return;
   dirty=false;state.ts=Date.now();
-  try{await rawSet(KEY,JSON.stringify(state));lastTs=state.ts;setStatus('Sauvegardé');}
-  catch(e){dirty=true;setStatus('Sauvegarde impossible');toast('Sauvegarde impossible : exporte en fin de séance',null,null,5000);}
+  try{await rawSet(KEY,JSON.stringify(state));lastTs=state.ts;writeOk(true);}
+  catch(e){dirty=true;writeOk(false);}
+}
+/* Échec d'écriture : trait rouge sous l'en-tête jusqu'à la prochaine réussite, message au plus une fois par minute.
+   La saisie reste en mémoire et sera réécrite à la prochaine action ou au retour dans l'app. */
+let failAt=0;
+function writeOk(ok){
+  $('top').classList.toggle('unsaved',!ok);setStatus(ok?'Sauvegardé':'Non sauvegardé');
+  if(ok){failAt=0;return;}
+  if(Date.now()-failAt<60e3)return;failAt=Date.now();
+  toast('Sauvegarde impossible : tes dernières saisies ne sont pas sur le téléphone','Exporter',()=>saveFile(`muscu-sauvegarde-${dayStr()}.json`,JSON.stringify(state)),8000);
 }
 /* ---------- Bandeau de verrou ---------- */
 const fdate=d=>d?d.slice(8,10)+'/'+d.slice(5,7):'';
@@ -1487,7 +1497,7 @@ async function wake(){
   try{wl=await navigator.wakeLock.request('screen');wl.addEventListener('release',()=>{wl=null;});}catch(e){}
 }
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible'){if(state.timer){lastSec=-1;syncBar();tick();}updChrono();wake();}
+  if(document.visibilityState==='visible'){if(state.timer){lastSec=-1;syncBar();tick();}updChrono();wake();if(dirty)saveNow();}
   else saveNow();
 });
 addEventListener('pagehide',()=>saveNow());
