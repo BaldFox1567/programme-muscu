@@ -406,6 +406,7 @@ pre{white-space:pre-wrap;background:var(--s2);padding:10px;border-radius:10px;fo
   <div class="al-in"><p class="al1" id="alT">C'est reparti</p><p class="al2" id="alNext"></p><p class="al3" id="alAgo"></p><button id="alOk" onclick="hideAlarm()">OK, j'y vais</button></div>
 </div>
 <div id="toasts" role="status" aria-live="polite"></div>
+<div id="sr" class="vh" aria-live="polite"></div>
 <input type="file" id="bkFile" class="vh" accept=".json,application/json,text/plain" tabindex="-1" aria-hidden="true">
 <div id="sheet" class="sh" hidden>
   <div class="scrim" onclick="closeSheet()"></div>
@@ -1570,6 +1571,8 @@ function startTimer(sec,label,next,kind){
   unlockAudio();
   state.timer={end:Date.now()+sec*1000,dur:sec,label:label||'',next:next??nextLabel(),kind:kind||'rest'};
   saveNow(1);hideAlarm();showTimer();
+  /* Lecteur d'écran : le compte à rebours n'est pas lu seconde par seconde, on annonce seulement le départ */
+  $('sr').textContent='';setTimeout(()=>{$('sr').textContent=`${kind==='wu'?'Échauffement':'Repos'} ${fmt(sec)} lancé.`;},50);
 }
 function showTimer(){
   const t=state.timer,box=$('timer');
