@@ -1647,6 +1647,13 @@ document.addEventListener('visibilitychange',()=>{
 addEventListener('pagehide',()=>saveNow());
 function startWu(){const s=SESS[state.day];sessionStart();startTimer(wuMin(s)*60,s.label+' · '+s.sub,nextLabel(),'wu');}
 
+/* Ouverture (souvent après un rechargement par iOS) : séance commencée, on arrive sur le poste en cours, pas en haut */
+if('scrollRestoration' in history)history.scrollRestoration='manual'; /* sinon le navigateur remet la page en haut après coup */
+function openAtCurrent(){
+  if(state.view!=='today'||!sessProgress().done)return;
+  const cur=MODEL.find(P=>!posteDone(P)),el=cur?$('p-'+cur.p):$('recap');
+  if(el)el.scrollIntoView({block:'start'});
+}
 /* ---------- Hors ligne ---------- */
 /* GitHub Pages : sw.js garde une copie de l'app pour l'ouvrir sans réseau. Absent, refusé ou dans l'artifact Claude
    (page dans un cadre) : rien ne change, l'app marche en ligne comme avant. */
@@ -1662,7 +1669,7 @@ const persTxt=()=>persisted==null?'':persisted?'Stockage protégé du nettoyage 
 
 /* ---------- Démarrage ---------- */
 (async()=>{
-  await load();render();renderLock();
+  await load();render();renderLock();openAtCurrent();
   /* Minuteur en cours avant un rechargement par iOS : on le reprend, ou on signale la fin */
   const t=state.timer;
   if(t&&t.end>Date.now())showTimer();else if(t){state.timer=null;save();if(Date.now()-t.end<10*60e3)showAlarm(t,Date.now()-t.end);}
