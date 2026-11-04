@@ -286,6 +286,13 @@ ul{margin:0;padding-left:20px}li{margin-bottom:7px}
 .field{display:flex;flex-direction:column;gap:var(--sp1);margin-top:var(--sp4)}
 .field label{font-size:var(--fs-xs);color:var(--tx2);font-weight:600}
 .field input{width:100%;font-size:var(--fs-m)}
+/* Sauvegarde */
+.bk{margin-top:var(--sp6)}
+.cmp table{white-space:normal}.cmp td,.cmp th{padding:var(--sp2)}
+.bkst{margin:var(--sp2) 0 0;font-size:var(--fs-s);color:var(--tx2)}.bkst b{color:var(--tx)}
+.bkrow{display:flex;align-items:center;gap:var(--sp3);padding:var(--sp2) 0;border-bottom:1px solid var(--line);font-size:var(--fs-s)}
+.bkrow span{flex:1;min-width:0}
+textarea{width:100%;font:inherit;font-size:16px;color:inherit;background:var(--s2);border:1px solid var(--line2);border-radius:var(--r2);padding:var(--sp2) var(--sp3)}
 /* ========== Progression ========== */
 .vt{font-size:var(--fs-l);margin:var(--sp5) 0 var(--sp1)}
 .vt:first-child{margin-top:0}
@@ -388,6 +395,7 @@ pre{white-space:pre-wrap;background:var(--s2);padding:10px;border-radius:10px;fo
   <div class="al-in"><p class="al1" id="alT">C'est reparti</p><p class="al2" id="alNext"></p><p class="al3" id="alAgo"></p><button id="alOk" onclick="hideAlarm()">OK, j'y vais</button></div>
 </div>
 <div id="toasts" role="status" aria-live="polite"></div>
+<input type="file" id="bkFile" class="vh" accept=".json,application/json,text/plain" tabindex="-1" aria-hidden="true">
 <div id="sheet" class="sh" hidden>
   <div class="scrim" onclick="closeSheet()"></div>
   <div class="panel" role="dialog" aria-modal="true" aria-labelledby="shT" tabindex="-1">
@@ -836,6 +844,41 @@ function migrate(o){
     (s._logs_invalides=s._logs_invalides||{})[k]=s.logs[k];delete s.logs[k];notes.push('Série illisible mise de côté : '+k);}
   return {s,from,newer:false,notes};
 }
+/* ---------- Sauvegarde fichier ---------- */
+const BK_APP='muscu-programme';
+/* Résumé d'un journal, pour l'aperçu avant restauration */
+function journalInfo(s){
+  let series=0,cochees=0;const ws=new Set();
+  for(const k in s.logs){const [w,,,i]=k.split('|'),x=s.logs[k];if(i==='b'||!x||!(x.w||x.r||x.ok))continue;series++;if(x.ok)cochees++;if(+w)ws.add(+w);}
+  const l=[...ws].sort((a,b)=>a-b);
+  return {series,cochees,semaines:l.length,de:l[0]||0,a:l[l.length-1]||0,seances:Object.keys(s.sessions||{}).length};
+}
+function backupText(s,now){return JSON.stringify({app:BK_APP,format:1,exporte:new Date(now).toISOString(),schema:SCHEMA,etat:s});}
+/* Lit un fichier de sauvegarde, ou un état brut (copie de secours, ancien export) : rend un état migré ou lève une erreur lisible */
+function parseBackup(text){
+  let o;try{o=JSON.parse(String(text).replace(/^\uFEFF/,'').trim());}catch(e){throw new Error("Ce n'est pas un fichier de sauvegarde lisible.");}
+  let exporte=null;
+  if(isObj(o)&&o.app===BK_APP){if(!isObj(o.etat))throw new Error('Sauvegarde vide ou abîmée.');exporte=o.exporte||null;o=o.etat;}
+  if(!isObj(o)||!isObj(o.logs))throw new Error('Ce fichier ne contient pas de journal.');
+  const m=migrate(o);
+  if(m.newer)throw new Error("Sauvegarde faite par une version plus récente de l'app : mets l'app à jour avant de la restaurer.");
+  return {s:m.s,exporte,notes:m.notes,info:journalInfo(m.s)};
+}
+/* Journal en texte lisible, à coller dans des notes : semaine, jour (lundi avant jeudi), exercice, séries */
+function exportText(s){
+  const ord=k=>{const [w,d,ex,i]=k.split('|');return [+w||0,DAYS.includes(d)?DAYS.indexOf(d):99,ex||'',i==='b'?-1:+i||0];};
+  const keys=Object.keys(s.logs).filter(k=>k.split('|').length===4)
+    .sort((a,b)=>{const A=ord(a),B=ord(b);return A[0]-B[0]||A[1]-B[1]||A[2].localeCompare(B[2])||A[3]-B[3];});
+  const grp={},bands={},lines=[];
+  keys.forEach(k=>{const [w,d,ex,i]=k.split('|'),g=w+'|'+d+'|'+ex;
+    if(i==='b'){bands[g]=s.logs[k].v;return;}
+    (grp[g]=grp[g]||[])[+i]=s.logs[k];});
+  Object.keys(grp).forEach(g=>{const [w,d,ex]=g.split('|');
+    const sets=Array.from(grp[g],x=>x?`${x.w||'—'}×${x.r||'—'}${x.ok?'✓':''}`:'—');
+    lines.push(`S${w} ${dayLabel(d)} – ${exName(ex)}${bands[g]?` [élastique ${bands[g]}]`:''} : ${sets.join(', ')}`);});
+  if(s.refs&&Object.keys(s.refs).length)lines.push('Références : '+JSON.stringify(s.refs));
+  return lines.join('\n')||'Aucune saisie.';
+}
 /* @pur:fin */
 
 /* ---------- État & stockage ---------- */
@@ -1012,6 +1055,7 @@ function render(){
   document.documentElement.style.setProperty('--blk',bh.color);
   $('v-'+state.view).innerHTML=state.view==='today'?vToday():state.view==='year'?vYear():vProg();
   if(state.view==='today')afterToday();else{MODEL=model();updChrono();refreshPill();}
+  if(state.view==='year')fillCopies();
   renderHead();
 }
 function renderHead(){
@@ -1122,7 +1166,8 @@ function setRow(m,i,lt){
 function recapHtml(){
   return `<section class="recap" id="recap" aria-labelledby="rcT"><h2 id="rcT">Fin de séance</h2>
 <div class="stats"><div><b id="rcDur" class="tn">—</b><small>durée</small></div><div><b id="rcSets" class="tn">0/0</b><small>séries</small></div><div><b id="rcVol" class="tn">0</b><small>kg de volume</small></div></div>
-<p class="small">Ton texte à coller dans tes notes. Il reprend toutes les semaines saisies.</p>
+<p class="small">Ton texte à coller dans tes notes. Il reprend toutes les semaines saisies. Pour pouvoir restaurer, utilise plutôt la sauvegarde fichier (onglet Plan).</p>
+<p class="bkst" id="rcBk" hidden></p>
 <div class="btns"><button class="acc" onclick="exportTxt()">Copier le journal</button><button class="danger" onclick="resetWeek()" aria-label="Effacer cette séance">Effacer</button></div><pre id="exp" hidden></pre></section>`;
 }
 
@@ -1177,6 +1222,9 @@ function updRecap(){
   $('rcVol').textContent=Math.round(vol).toLocaleString('fr-FR');
   $('recap').classList.toggle('complete',p.total>0&&p.done===p.total);
   const s=sess();$('rcDur').textContent=s?fmtDur((s.t1||Math.min(Date.now(),s.t0+STALE))-s.t0):'—';
+  /* Rappel discret : plus de 7 jours sans sauvegarde fichier alors que le journal contient des séries */
+  const bk=$('rcBk'),old=Object.keys(state.logs).length&&Date.now()-state.exportAt>7*864e5;bk.hidden=!old;
+  if(old)bk.innerHTML=`${bkAge()} <button class="link" data-act="bkSave">Sauvegarder maintenant</button>`;
 }
 function afterToday(){refreshPostes(-1);}
 function startRest(p){const P=MODEL[p];sessionStart();startTimer(P.rest,P.exs.map(m=>m.name).join(' + '),nextLabel(P));}
@@ -1201,18 +1249,7 @@ function doReset(){
   toast('Séance effacée','Annuler',()=>{Object.assign(state.logs,logs);if(ses)state.sessions[k0]=ses;save();render();},5000);
 }
 function exportTxt(){
-  const lines=[];
-  const keys=Object.keys(state.logs).sort((a,b)=>{const A=a.split('|'),B=b.split('|');return (+A[0]-+B[0])||A[1].localeCompare(B[1])||A[2].localeCompare(B[2])||(+A[3]-+B[3]);});
-  const grp={};
-  const bands={};
-  keys.forEach(k=>{const [w,d,ex,i]=k.split('|');const g=w+'|'+d+'|'+ex;
-    if(i==='b'){bands[g]=state.logs[k].v;return;}
-    (grp[g]=grp[g]||[])[+i]=state.logs[k];});
-  Object.keys(grp).forEach(g=>{const [w,d,ex]=g.split('|');
-    const sets=grp[g].map(s=>s?`${s.w||'—'}×${s.r||'—'}${s.ok?'✓':''}`:'—');
-    lines.push(`S${w} ${SESS[d].label} – ${EX[ex].name}${bands[g]?` [élastique ${bands[g]}]`:''} : ${sets.join(', ')}`);});
-  if(state.refs&&Object.keys(state.refs).length)lines.push('Références : '+JSON.stringify(state.refs));
-  const txt=lines.join('\n')||'Aucune saisie.';
+  const txt=exportText(state);
   const pre=document.getElementById('exp');pre.hidden=false;pre.textContent=txt;
   if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(()=>toast('Journal copié')).catch(()=>toast('Copie impossible : sélectionne le texte ci-dessous'));}
   pre.scrollIntoView({behavior:reduced()?'auto':'smooth',block:'nearest'});
@@ -1229,8 +1266,88 @@ function vYear(){
     for(let w=b.w[0];w<=b.w[1];w++)wk+=`<button class="wkb${isDL(w)?' dl':''}${w===cur?' now':''}${w===state.week&&w!==cur?' sel':''}" onclick="openWeek(${w})" aria-label="Semaine ${w}${isDL(w)?', décharge':''}${w===cur?', en cours':''}${done.has(w)?', saisies enregistrées':''}">${w}${isDL(w)?'<small>déch.</small>':''}${done.has(w)?'<i></i>':''}</button>`;
     h+=`<section class="blkc${b===bc?' cur':''}" style="--c:${b.color}"><h2><i class="dot" style="background:${b.color}"></i>Bloc ${b.n} — ${b.name}</h2><p class="small">Semaines ${b.w[0]} à ${b.w[1]} · RIR ${b.rir} · décharge S${b.w[1]}</p><p>${b.obj}</p><div class="wks">${wk}</div></section>`;
   });
-  return h+`<div class="field"><label for="st">Début du programme (un lundi)</label><input id="st" type="date" value="${state.start}" onchange="state.start=this.value;save();render()"></div>`;
+  return h+`<div class="field"><label for="st">Début du programme (un lundi)</label><input id="st" type="date" value="${state.start}" onchange="state.start=this.value;save();render()"></div>`+backupHtml();
 }
+/* ---------- Sauvegarde et restauration ---------- */
+function bkAge(){
+  if(!state.exportAt)return 'Dernière sauvegarde fichier : <b>jamais</b>.';
+  const j=Math.floor((Date.now()-state.exportAt)/864e5),d=new Date(state.exportAt);
+  return `Dernière sauvegarde fichier : <b>${j<1?"aujourd'hui":j===1?'hier':'il y a '+j+' jours'}</b> (${d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'})}).`;
+}
+function backupHtml(){
+  return `<section class="bk" aria-labelledby="bkT"><h2 class="vt" id="bkT">Sauvegarde</h2>
+<p class="small">Ton journal n'existe que sur ce téléphone. Un fichier de sauvegarde le met à l'abri (Fichiers, iCloud, mail) et se restaure ici ou sur un autre téléphone.</p>
+<p class="bkst" id="bkSt">${bkAge()}</p>
+<div class="btns"><button class="acc" data-act="bkSave">Enregistrer une sauvegarde</button><button data-act="bkOpen">Restaurer…</button></div>
+<div class="btns"><button data-act="bkCopy">Copier la sauvegarde (texte)</button></div>
+<h3>Copies automatiques sur ce téléphone</h3><div id="bkCopies"><p class="small">${hasStorage?'Lecture…':'Pas de stockage sur cet appareil.'}</p></div></section>`;
+}
+async function fillCopies(){
+  const el=$('bkCopies');if(!el||!hasStorage)return;
+  const rows=[],p=await readPrec();
+  if(p)rows.push(['prec',`Copie du ${fdate(p.d)} (premier lancement du jour)`]);
+  for(const [k,lab] of [[K_IMPORT,'Journal remplacé par la dernière restauration'],[K_V1,"Sauvegarde d'origine, avant la mise à jour du format"],[K_BAD,'Sauvegarde illisible mise de côté']])
+    try{if(await rawGet(k))rows.push([k,lab]);}catch(e){}
+  el.innerHTML=rows.length?rows.map(([k,l])=>`<div class="bkrow"><span>${esc(l)}</span><button data-act="${k===K_BAD?'bkBadExport':'bkCopyOpen'}" data-k="${k}">${k===K_BAD?'Exporter':'Voir'}</button></div>`).join('')
+    :'<p class="small">Aucune copie pour l\'instant.</p>';
+}
+const copyText=async k=>{try{return k==='prec'?((await readPrec())||{}).raw:await rawGet(k);}catch(e){return null;}};
+/* Aperçu avant remplacement : rien n'est écrit tant que tu n'as pas confirmé */
+let pending=null;
+function previewImport(text,source){
+  let r;
+  try{r=parseBackup(text);}catch(e){openSheet('Restaurer',`<p>${esc(e.message)}</p><div class="btns"><button data-act="closeSheet">Fermer</button></div>`);return;}
+  pending=r;const a=r.info,b=journalInfo(state),wk=i=>i.semaines?`S${i.de} → S${i.a} (${i.semaines})`:'aucune';
+  const when=r.exporte?new Date(r.exporte).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
+  openSheet('Restaurer cette sauvegarde ?',`<p class="small">${esc(source)}</p>
+<div class="tbl cmp"><table><thead><tr><th scope="col"></th><th scope="col">Fichier</th><th scope="col">Actuel</th></tr></thead><tbody>
+<tr><th scope="row">Date</th><td>${when}</td><td>—</td></tr>
+<tr><th scope="row">Semaines</th><td>${wk(a)}</td><td>${wk(b)}</td></tr>
+<tr><th scope="row">Séries</th><td>${a.series}</td><td>${b.series}</td></tr>
+<tr><th scope="row">Séances</th><td>${a.seances}</td><td>${b.seances}</td></tr></tbody></table></div>
+${a.series<b.series?'<p class="note rt">Cette sauvegarde contient moins de séries que ton journal actuel.</p>':''}
+${r.notes.length?`<ul class="small">${r.notes.slice(0,5).map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`:''}
+<p class="small">Ton journal actuel est mis de côté avant d'être remplacé : tu pourras revenir en arrière.</p>
+<div class="btns"><button data-act="closeSheet">Annuler</button><button class="danger" data-act="bkDoImport">Remplacer mon journal</button></div>`);
+}
+async function doImport(){
+  const r=pending;pending=null;if(!r)return closeSheet();
+  if(lock&&lock.why==='version'){closeSheet();toast("Mets d'abord l'app à jour (recharge)",null,null,5000);return;}
+  if(hasStorage){/* Ce qui va être remplacé est rangé d'abord ; si ça échoue, on n'écrase rien */
+    try{if(lock){if(lock.raw)await rawSet(K_BAD,lock.raw);}else await rawSet(K_IMPORT,JSON.stringify(state));}
+    catch(e){closeSheet();toast("Impossible de mettre ton journal actuel de côté : rien n'a changé",null,null,6000);return;}}
+  const undo=!lock;
+  state=Object.assign(r.s,{timer:null,view:'year'});lock=null;renderLock();
+  saveNow(1);closeSheet();openP.clear();render();
+  toast('Journal restauré',undo?'Annuler':null,undo?undoImport:null,8000);
+}
+async function undoImport(){
+  const t=await copyText(K_IMPORT);let s;try{s=parseBackup(t).s;}catch(e){toast('Retour impossible : copie illisible');return;}
+  state=Object.assign(s,{timer:null,view:'year'});saveNow(1);render();toast('Journal précédent remis');
+}
+async function bkSave(){
+  const r=await saveFile(`muscu-sauvegarde-${dayStr()}.json`,backupText(state,Date.now()));
+  if(['partage','téléchargement','copie'].includes(r)){state.exportAt=Date.now();save();
+    const st=$('bkSt');if(st)st.innerHTML=bkAge();updRecap();if(r!=='copie')toast('Sauvegarde enregistrée');}
+}
+Object.assign(ACT,{
+  bkSave,
+  bkCopy:async()=>{try{await navigator.clipboard.writeText(backupText(state,Date.now()));toast('Sauvegarde copiée : colle-la dans Notes ou un mail');}catch(e){toast('Copie impossible sur cet appareil');}},
+  bkOpen:()=>openSheet('Restaurer une sauvegarde',`<p>Choisis un fichier de sauvegarde (.json), ou colle son texte.</p>
+<div class="btns"><button class="acc" data-act="bkPick">Choisir un fichier</button></div>
+<div class="field"><label for="bkTxt">Texte d'une sauvegarde</label><textarea id="bkTxt" rows="4" autocomplete="off" spellcheck="false"></textarea></div>
+<div class="btns"><button data-act="bkPaste">Lire ce texte</button></div>`),
+  bkPick:()=>$('bkFile').click(),
+  bkPaste:()=>previewImport($('bkTxt').value,'Texte collé'),
+  bkCopyOpen:async b=>{const t=await copyText(b.dataset.k);if(t)previewImport(t,b.previousElementSibling.textContent);else toast('Copie introuvable');},
+  bkBadExport:async b=>{const t=await copyText(b.dataset.k);if(t)saveFile(`muscu-illisible-${dayStr()}.json`,t);},
+  bkDoImport:doImport
+});
+$('bkFile').addEventListener('change',e=>{
+  const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;
+  if(f.size>20e6){toast('Fichier trop gros pour être une sauvegarde');return;}
+  f.text().then(t=>previewImport(t,'Fichier : '+f.name),()=>toast('Lecture du fichier impossible'));
+});
 /* Un tap sur une semaine l'ouvre dans Aujourd'hui */
 function openWeek(w){state.week=w;state.pinned=w!==curWeek();openP.clear();save();scrollY0.today=0;go('today');}
 
