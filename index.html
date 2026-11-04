@@ -958,7 +958,9 @@ function renderLock(){
       '<button class="acc" data-act="reload">Réessayer</button><button class="danger" data-act="lockAdopt">Je n\'ai encore rien saisi</button>'],
     illisible:["Ta sauvegarde est illisible.",p?`Tu vois la copie automatique du ${fdate(p.d)}. Rien n'est enregistré tant que tu n'as pas choisi.`:"Rien n'est écrit pour ne pas l'écraser.",
       ex+`<button class="${p?'acc':'danger'}" data-act="lockAdopt">${p?'Reprendre avec cette copie':'Repartir à zéro'}</button>`],
-    version:["Journal enregistré par une version plus récente de l'app.","Recharge pour l'obtenir. D'ici là, rien n'est enregistré.",'<button class="acc" data-act="reload">Recharger</button>']
+    version:["Journal enregistré par une version plus récente de l'app.","Recharge pour l'obtenir. D'ici là, rien n'est enregistré.",'<button class="acc" data-act="reload">Recharger</button>'],
+    conflit:["Journal modifié ailleurs pendant que tu saisissais ici.","Pour ne rien écraser, rien n'est enregistré. Exporte tes saisies d'ici si tu veux les garder, puis recharge.",
+      '<button data-act="bkSave">Exporter mes saisies</button><button class="acc" data-act="reload">Recharger le journal</button>']
   }[lock.why];
   el.innerHTML=`<p><b>${txt[0]}</b> ${txt[1]}</p><div class="btns">${txt[2]}</div>`;
 }
@@ -1187,6 +1189,7 @@ function updAct(){
   const n=nextSet();if(n){const r=document.querySelector(`.set[data-ex="${n[0].ex}"][data-i="${n[1]}"]`);if(r)r.classList.add('act');}
 }
 function toggle(ex,i){
+  if(checkWeek())return; /* app restée ouverte d'une semaine à l'autre : on ne coche pas dans l'ancienne */
   const on=!getSet(ex,i).ok,row=document.querySelector(`.set[data-ex="${ex}"][data-i="${i}"]`);
   if(on&&row){/* cocher une série vide reprend la charge indiquée */
     const w=$('w-'+ex+'-'+i);if(!w.value&&numv(w.placeholder)!=null){w.value=w.placeholder;setField(ex,i,'w',w.placeholder.replace(',','.'));refreshPh(ex,i);}}
@@ -1231,12 +1234,33 @@ function startRest(p){const P=MODEL[p];sessionStart();startTimer(P.rest,P.exs.ma
 function setDay(d){
   if(d===state.day)return;
   state.day=d;save();openP.clear();
+  if(weekStale()){state.week=curWeek();render();return;}
   const seg=document.querySelector('.seg'),days=Object.keys(SESS);
   seg.style.setProperty('--i',days.indexOf(d));
   seg.querySelectorAll('button').forEach((b,k)=>b.setAttribute('aria-checked',days[k]===d));
   $('tBody').innerHTML=todayBody();afterToday();
 }
-function setWeek(w){state.week=w;state.pinned=true;save();openP.clear();render();}
+/* Choisir la semaine du calendrier ne la fige pas : l'app continuera d'avancer seule */
+function setWeek(w){state.week=w;state.pinned=w!==curWeek();save();openP.clear();render();}
+/* La semaine suit le calendrier, sauf si tu l'as figée ou qu'une séance est en cours */
+const weekStale=()=>!state.pinned&&!sessActive()&&curWeek()!==state.week;
+function checkWeek(){
+  if(!weekStale())return false;
+  const w=curWeek();state.week=w;save();openP.clear();render();toast(`Nouvelle semaine : semaine ${w}`);return true;
+}
+/* Un autre onglet ou appareil a écrit entre-temps (artifact ouvert sur deux appareils, deux onglets) */
+async function resync(){
+  if(!hasStorage||lock)return;
+  let o;try{const raw=await rawGet(KEY);o=raw&&JSON.parse(raw);}catch(e){return;}
+  if(!o||!(o.ts>lastTs)||o.ts===state.ts)return; /* rien de nouveau, ou notre propre écriture */
+  if(dirty){lock={why:'conflit'};renderLock();return;}
+  let m;try{m=migrate(o);}catch(e){return;}
+  if(m.newer){lock={why:'version'};renderLock();return;}
+  const v=state.view;state=m.s;state.view=v;lastTs=state.ts;openP.clear();
+  clearInterval(tInt);if(state.timer&&state.timer.end>Date.now())showTimer();else{state.timer=null;$('timer').classList.remove('run','low','mini');}
+  render();toast('Journal mis à jour depuis un autre onglet ou appareil');
+}
+addEventListener('storage',e=>{if(e.key===KEY)resync();});
 function unpin(){state.pinned=false;syncWeek();save();openP.clear();render();}
 function resetWeek(){
   openSheet('Effacer cette séance ?',`<p>Les saisies de la semaine ${state.week} pour ${SESS[state.day].label} seront effacées. Tu pourras annuler pendant 5 secondes.</p><div class="btns"><button onclick="closeSheet()">Garder</button><button class="danger" onclick="doReset()">Effacer</button></div>`);
@@ -1266,7 +1290,7 @@ function vYear(){
     for(let w=b.w[0];w<=b.w[1];w++)wk+=`<button class="wkb${isDL(w)?' dl':''}${w===cur?' now':''}${w===state.week&&w!==cur?' sel':''}" onclick="openWeek(${w})" aria-label="Semaine ${w}${isDL(w)?', décharge':''}${w===cur?', en cours':''}${done.has(w)?', saisies enregistrées':''}">${w}${isDL(w)?'<small>déch.</small>':''}${done.has(w)?'<i></i>':''}</button>`;
     h+=`<section class="blkc${b===bc?' cur':''}" style="--c:${b.color}"><h2><i class="dot" style="background:${b.color}"></i>Bloc ${b.n} — ${b.name}</h2><p class="small">Semaines ${b.w[0]} à ${b.w[1]} · RIR ${b.rir} · décharge S${b.w[1]}</p><p>${b.obj}</p><div class="wks">${wk}</div></section>`;
   });
-  return h+`<div class="field"><label for="st">Début du programme (un lundi)</label><input id="st" type="date" value="${state.start}" onchange="state.start=this.value;save();render()"></div>`+backupHtml();
+  return h+`<div class="field"><label for="st">Début du programme (un lundi)</label><input id="st" type="date" value="${state.start}" onchange="if(this.value){state.start=this.value;save();render()}"></div>`+backupHtml();
 }
 /* ---------- Sauvegarde et restauration ---------- */
 function bkAge(){
@@ -1427,6 +1451,7 @@ addEventListener('keydown',e=>{
 
 /* ---------- Toasts ---------- */
 function toast(msg,act,fn,ms){
+  if([...$('toasts').children].some(x=>x.firstChild&&x.firstChild.textContent===msg))return; /* déjà affiché */
   const t=document.createElement('div');t.className='toast';t.innerHTML=`<span>${esc(msg)}</span>`;
   const kill=()=>{clearTimeout(k);t.classList.remove('in');setTimeout(()=>t.remove(),reduced()?0:320);};
   if(act){const b=document.createElement('button');b.textContent=act;b.onclick=()=>{fn();kill();};t.append(b);}
@@ -1614,7 +1639,7 @@ async function wake(){
   try{wl=await navigator.wakeLock.request('screen');wl.addEventListener('release',()=>{wl=null;});}catch(e){}
 }
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible'){if(state.timer){lastSec=-1;syncBar();tick();}updChrono();wake();if(dirty)saveNow();}
+  if(document.visibilityState==='visible'){if(state.timer){lastSec=-1;syncBar();tick();}updChrono();wake();if(dirty)saveNow();resync().then(checkWeek);}
   else saveNow();
 });
 addEventListener('pagehide',()=>saveNow());
