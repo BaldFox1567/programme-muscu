@@ -67,6 +67,11 @@ input,select{background:var(--s2);border:1px solid var(--line2);border-radius:va
 .pbar{position:absolute;left:0;right:0;bottom:-1px;height:3px;overflow:hidden}
 .pbar i{display:block;height:100%;background:var(--blk);transform-origin:0 50%;transform:scaleX(0);transition:transform var(--d3) var(--ease)}
 
+/* Bandeau de verrou : la sauvegarde n'a pas pu être lue, rien n'est écrit */
+.lock{max-width:var(--maxw);margin:var(--sp2) auto 0;background:var(--bad-bg);border:1px solid var(--bad);border-radius:var(--r2);padding:var(--sp2) var(--sp3);font-size:var(--fs-s)}
+.lock[hidden]{display:none}
+.lock p{margin:0}.lock b{color:var(--bad)}
+.lock .btns{flex-wrap:wrap;margin-top:var(--sp2)}
 /* ========== Contenu ========== */
 main{max-width:var(--maxw);margin:0 auto;padding:var(--sp4) calc(var(--sar) + var(--sp4)) calc(var(--dock-h) + var(--sp5)) calc(var(--sal) + var(--sp4))}
 .view[hidden]{display:none}
@@ -356,6 +361,7 @@ pre{white-space:pre-wrap;background:var(--s2);padding:10px;border-radius:10px;fo
     <span class="hprog" id="hProg"><span id="hProgTxt">0/0</span><small>séries</small></span>
   </div>
   <div class="pbar" aria-hidden="true"><i id="hBar"></i></div>
+  <div id="lock" class="lock" role="alert" hidden></div>
 </header>
 <main id="view">
   <section id="v-today" class="view" aria-label="Aujourd'hui"></section>
@@ -723,6 +729,9 @@ const numv=v=>{const n=parseFloat(String(v??'').replace(',','.'));return isNaN(n
 const disp=v=>v==null?'':String(v).replace('.',',');
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
 function fmt(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+/* Noms affichés, y compris pour un jour ou un exercice qui n'existe plus dans le programme */
+const dayLabel=d=>(SESS[d]||{label:d}).label;
+const exName=x=>(EX[x]||{name:x}).name;
 /* Semaine du programme (1 à 52) à la date now, comptée depuis le lundi de début */
 function weekOf(start,now){const st=new Date(start+'T00:00:00');if(isNaN(st))return 1;
   const w=Math.floor((now-st)/(7*864e5))+1;return Math.min(52,Math.max(1,w));}
@@ -789,31 +798,144 @@ function restAfter(model,isOk,ex,i){
   if(P.ss){const a2=P.exs[1];if(m.k===0&&i<a2.sets&&!isOk(a2.ex,i))return null;r=P.rest;lab=P.exs.map(m=>m.name).join(' + ');}
   return r>0?{sec:r,label:lab,P}:null;
 }
+/* ---------- Schéma de sauvegarde ---------- */
+/* v1 : sauvegardes d'origine, sans numéro de version.
+   v2 : + v (version), ts (heure de la dernière écriture), exportAt (dernière sauvegarde fichier),
+        + t sur une série cochée (heure de la coche). Tous les champs v1 sont gardés tels quels. */
+const SCHEMA=2;
+const isObj=o=>!!o&&typeof o==='object'&&!Array.isArray(o);
+function defaults(){return {v:SCHEMA,view:'today',week:1,day:'lun',start:'2026-09-14',logs:{},refs:{},pinned:false,
+  autoRest:true,timer:null,sessions:{},ts:0,exportAt:0};}
+/* Une fonction par saut de version. Une migration ajoute ou corrige, elle n'efface jamais une série. */
+const MIGRATIONS={
+  1:s=>Object.assign(s,{v:2,ts:0,exportAt:0})
+};
+/* Lit un objet sauvegardé (toute version connue) et rend un état valide de la version actuelle, sans toucher à
+   l'original. Un champ d'interface invalide reprend sa valeur par défaut ; une donnée d'entraînement
+   illisible est mise de côté sous un autre nom, jamais jetée. newer : sauvegarde d'une version plus récente. */
+function migrate(o){
+  if(!isObj(o))throw new Error("La sauvegarde ne contient pas d'objet.");
+  const from=o.v===undefined?1:o.v;
+  if(!Number.isInteger(from)||from<1)throw new Error('Version de sauvegarde inconnue : '+o.v);
+  if(from>SCHEMA)return {s:o,from,newer:true,notes:[]};
+  let s=JSON.parse(JSON.stringify(o));const notes=[],d=defaults();
+  for(let v=from;v<SCHEMA;v++)s=MIGRATIONS[v](s);
+  const fix=(f,ok,msg)=>{if(!ok){if(f in s&&msg)notes.push(msg);s[f]=d[f];}};
+  if('week' in s)s.week=+s.week;
+  fix('view',['today','year','prog'].includes(s.view));
+  fix('week',Number.isInteger(s.week)&&s.week>=1&&s.week<=52,'Semaine affichée invalide : remise à 1.');
+  fix('day',typeof s.day==='string'&&!!SESS[s.day],'Jour affiché inconnu ('+s.day+') : remis à lundi.');
+  fix('start',typeof s.start==='string'&&!isNaN(new Date(s.start+'T00:00:00')),'Date de début invalide : remise par défaut.');
+  fix('pinned',typeof s.pinned==='boolean');fix('autoRest',typeof s.autoRest==='boolean');
+  fix('timer',s.timer===null||(isObj(s.timer)&&typeof s.timer.end==='number'&&s.timer.dur>0));
+  fix('ts',typeof s.ts==='number');fix('exportAt',typeof s.exportAt==='number');
+  for(const f of ['logs','refs','sessions'])if(!isObj(s[f])){
+    if(s[f]!=null){s['_'+f+'_invalide']=s[f];notes.push(`« ${f} » illisible : mis de côté.`);}s[f]={};}
+  for(const k in s.logs)if(!isObj(s.logs[k])){
+    (s._logs_invalides=s._logs_invalides||{})[k]=s.logs[k];delete s.logs[k];notes.push('Série illisible mise de côté : '+k);}
+  return {s,from,newer:false,notes};
+}
 /* @pur:fin */
 
 /* ---------- État & stockage ---------- */
 const KEY='muscu_bloc1_v1';
-let state={view:'today',week:1,day:'lun',start:'2026-09-14',logs:{},refs:{},pinned:false,
-  autoRest:true,timer:null,sessions:{}}; /* champs ajoutés par la refonte, absents des anciennes sauvegardes */
+/* Copies de secours rangées à côté. Aucune écriture normale n'y touche. */
+const K_V1=KEY+'__avant_v2',        /* la sauvegarde v1 telle qu'elle était avant sa première migration */
+      K_PREC=KEY+'__prec',          /* la sauvegarde lue au premier lancement du jour : {d, raw} */
+      K_IMPORT=KEY+'__avant_import',/* l'état remplacé par la dernière restauration */
+      K_BAD=KEY+'__illisible';      /* une sauvegarde illisible, mise de côté avant de repartir d'une copie */
+let state=defaults();
 function curWeek(){return weekOf(state.start,new Date());}
 function syncWeek(){if(!state.pinned)state.week=curWeek();}
 /* Hors artifact Claude (ex. GitHub Pages) : repli sur localStorage */
 if(!window.storage){try{const ls=window.localStorage;ls.setItem('__t','1');ls.removeItem('__t');window.storage={get:async k=>({value:ls.getItem(k)}),set:async(k,v)=>{ls.setItem(k,v);}};}catch(e){}}
-let hasStorage=false,saveT=null,dirty=false;
+let hasStorage=false,saveT=null,dirty=false,lastTs=0;
+/* Verrou : tant qu'il est posé, rien n'est écrit. {why:'lecture'|'illisible'|'version', raw, prec} */
+let lock=null;
+async function rawGet(k){const r=await window.storage.get(k,false);return r&&typeof r.value==='string'?r.value:null;}
+async function rawSet(k,v){await window.storage.set(k,v,false);}
+/* Artifact Claude : une lecture peut échouer parce que la clé n'existe pas encore ; list() permet de le vérifier */
+async function keyAbsent(k){
+  if(typeof window.storage.list!=='function')return false;
+  try{const r=await window.storage.list(k,false),ks=(r&&r.keys)||[];return !ks.some(x=>(x&&x.key||x)===k);}catch(e){return false;}
+}
+const dayStr=(t=new Date())=>t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+async function readPrec(){try{const r=await rawGet(K_PREC),o=r&&JSON.parse(r);return o&&typeof o.raw==='string'?o:null;}catch(e){return null;}}
+/* Une copie par jour : la sauvegarde telle qu'elle était au premier lancement de la journée */
+async function keepPrec(raw){try{const p=await readPrec();if(!p||p.d!==dayStr())await rawSet(K_PREC,JSON.stringify({d:dayStr(),raw}));}catch(e){}}
 async function load(){
-  if(!window.storage){return;}
+  if(!window.storage)return;
   hasStorage=true;
-  try{const r=await window.storage.get(KEY,false);if(r&&r.value){const s=JSON.parse(r.value);Object.assign(state,s);}}catch(e){}
-  if(!state.sessions||typeof state.sessions!=='object')state.sessions={};if(typeof state.autoRest!=='boolean')state.autoRest=true;
+  let raw;
+  try{raw=await rawGet(KEY);}
+  catch(e){if(await keyAbsent(KEY))raw=null;else{lock={why:'lecture'};return;}}
+  if(raw==null)return; /* premier lancement */
+  let m=null;try{m=migrate(JSON.parse(raw));}catch(e){}
+  if(!m){/* Illisible : l'original reste intact, on affiche la copie de la veille si elle existe */
+    const p=await readPrec();lock={why:'illisible',raw,prec:p};
+    if(p)try{const mp=migrate(JSON.parse(p.raw));if(!mp.newer)state=mp.s;}catch(e){}
+    return;}
+  if(m.newer){/* Écrite par une version plus récente : affichée au mieux, jamais réécrite */
+    lock={why:'version'};try{state=migrate(Object.assign({},m.s,{v:SCHEMA})).s;}catch(e){}return;}
+  state=m.s;lastTs=state.ts;
+  if(m.from<SCHEMA)try{if(await rawGet(K_V1)==null)await rawSet(K_V1,raw);}catch(e){}
+  keepPrec(raw);
 }
 function save(){
-  if(!hasStorage)return;
-  dirty=true;clearTimeout(saveT);
-  saveT=setTimeout(async()=>{dirty=false;try{await window.storage.set(KEY,JSON.stringify(state),false);setStatus('Sauvegardé');}catch(e){setStatus('Sauvegarde impossible');toast('Sauvegarde impossible : exporte en fin de séance',null,null,5000);}},400);
+  if(!hasStorage||lock)return;
+  dirty=true;clearTimeout(saveT);saveT=setTimeout(write,400);
 }
-/* Écriture immédiate : minuteur lancé, page masquée (iOS peut la recharger ensuite) */
-/* N'écrit que s'il y a eu une modification : une page mal chargée n'écrase jamais la sauvegarde */
-function saveNow(force){if(force)dirty=true;if(!hasStorage||!dirty)return;clearTimeout(saveT);dirty=false;try{window.storage.set(KEY,JSON.stringify(state),false);}catch(e){}}
+/* Écriture immédiate : minuteur lancé, page masquée (iOS peut la recharger ensuite).
+   N'écrit que s'il y a eu une modification, et jamais quand la lecture a échoué. */
+function saveNow(force){if(force)dirty=true;write();}
+async function write(){
+  clearTimeout(saveT);
+  if(!hasStorage||lock||!dirty)return;
+  dirty=false;state.ts=Date.now();
+  try{await rawSet(KEY,JSON.stringify(state));lastTs=state.ts;setStatus('Sauvegardé');}
+  catch(e){dirty=true;setStatus('Sauvegarde impossible');toast('Sauvegarde impossible : exporte en fin de séance',null,null,5000);}
+}
+/* ---------- Bandeau de verrou ---------- */
+const fdate=d=>d?d.slice(8,10)+'/'+d.slice(5,7):'';
+function renderLock(){
+  const el=$('lock');if(!el)return;el.hidden=!lock;if(!lock){el.innerHTML='';return;}
+  const p=lock.prec,ex=lock.raw?`<button${p?'':' class="acc"'} data-act="lockExport">Exporter la sauvegarde illisible</button>`:'';
+  const txt={
+    lecture:["Impossible de lire ton journal.","Rien n'est enregistré tant que la lecture n'a pas réussi : tes séries ne seraient pas gardées.",
+      '<button class="acc" data-act="reload">Réessayer</button><button class="danger" data-act="lockAdopt">Je n\'ai encore rien saisi</button>'],
+    illisible:["Ta sauvegarde est illisible.",p?`Tu vois la copie automatique du ${fdate(p.d)}. Rien n'est enregistré tant que tu n'as pas choisi.`:"Rien n'est écrit pour ne pas l'écraser.",
+      ex+`<button class="${p?'acc':'danger'}" data-act="lockAdopt">${p?'Reprendre avec cette copie':'Repartir à zéro'}</button>`],
+    version:["Journal enregistré par une version plus récente de l'app.","Recharge pour l'obtenir. D'ici là, rien n'est enregistré.",'<button class="acc" data-act="reload">Recharger</button>']
+  }[lock.why];
+  el.innerHTML=`<p><b>${txt[0]}</b> ${txt[1]}</p><div class="btns">${txt[2]}</div>`;
+}
+/* Actions des boutons ajoutés : data-act="nom" au lieu d'un onclick écrit dans le HTML */
+const ACT={
+  reload:()=>location.reload(),
+  lockExport:()=>saveFile(`muscu-illisible-${dayStr()}.json`,lock.raw),
+  lockAdopt:()=>{
+    const p=lock&&lock.prec,msg=lock.why==='lecture'
+      ?"Si un journal existe déjà ici sans pouvoir être lu, ta prochaine série le remplacera. Ne le fais que si tu n'as encore rien saisi sur cet appareil."
+      :p?`Ta sauvegarde illisible est mise de côté (pas effacée), puis l'app repart de la copie du ${fdate(p.d)}.`:"Ta sauvegarde illisible est mise de côté (pas effacée), puis l'app repart d'un journal vide.";
+    openSheet('Reprendre l\'enregistrement ?',`<p>${msg}</p><div class="btns"><button data-act="closeSheet">Annuler</button><button class="danger" data-act="lockAdoptOk">Confirmer</button></div>`);
+  },
+  lockAdoptOk:async()=>{
+    if(lock&&lock.raw){try{await rawSet(K_BAD,lock.raw);}catch(e){closeSheet();toast("Impossible de mettre la sauvegarde illisible de côté : rien n'a changé",null,null,5000);return;}}
+    lock=null;closeSheet();renderLock();saveNow(1);render();toast('Enregistrement repris');
+  },
+  closeSheet:()=>closeSheet()
+};
+addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(b&&ACT[b.dataset.act])ACT[b.dataset.act](b,e);});
+/* Donne un fichier : feuille de partage iOS (Fichiers, Mail…), sinon téléchargement, sinon copie du texte */
+async function saveFile(name,text){
+  const f=new File([text],name,{type:'application/json'});
+  if(navigator.canShare&&navigator.share)try{if(navigator.canShare({files:[f]})){await navigator.share({files:[f],title:name});return 'partage';}}
+    catch(e){if(e&&e.name==='AbortError')return 'annulé';}
+  try{const u=URL.createObjectURL(f),a=document.createElement('a');a.href=u;a.download=name;document.body.append(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(u),10000);return 'téléchargement';}catch(e){}
+  try{await navigator.clipboard.writeText(text);toast('Fichier impossible : texte copié, colle-le dans Notes');return 'copie';}
+  catch(e){toast('Ni fichier ni copie possibles sur cet appareil',null,null,5000);return 'échec';}
+}
 function setStatus(t){const el=document.getElementById('status');if(el)el.textContent=t;}
 function lk(ex,i){return state.week+'|'+state.day+'|'+ex+'|'+i;}
 function getSet(ex,i){return state.logs[lk(ex,i)]||{};}
@@ -933,7 +1055,7 @@ function todayBody(){
     for(let w=b.w[0];w<=b.w[1];w++)opts+=`<option value="${w}" ${state.week===w?'selected':''}>Semaine ${w}${w===1?' (retest)':''}${isDL(w)?' (décharge)':''}</option>`;
     opts+='</optgroup>';});
   let h=`<div class="wline"><span class="wsel"><label for="wk" class="vh">Semaine affichée</label><select id="wk" onchange="setWeek(+this.value)">${opts}</select></span>
-${pinned?`<button class="link" onclick="unpin()">Revenir à la semaine ${cw}</button>`:''}<span class="status" id="status">${hasStorage?'':'Pas de stockage : exporte en fin de séance'}</span></div>`;
+${pinned?`<button class="link" onclick="unpin()">Revenir à la semaine ${cw}</button>`:''}<span class="status" id="status">${lock?'Lecture seule':hasStorage?'':'Pas de stockage : exporte en fin de séance'}</span></div>`;
   if(state.week===1)h+=`<p class="note rt">Retest cette semaine : il remplace les séries du 1<sup>er</sup> exercice.</p>`;
   if(dl)h+=`<p class="note dl">Décharge : séries ÷ 2, RIR 4, −15 % de charge partout.</p>`;
   h+=`<div class="infos" id="infos"><button class="infos-sum" id="infosBtn" aria-expanded="false" aria-controls="infos-in" onclick="toggleInfos()"><span class="grow"><b>Infos de la séance</b><small>${s.sub} · ${MODEL.length} postes · ~${per} min par poste · échauffement ${wuMin(s)} min</small></span>${CHEV}</button>
@@ -971,7 +1093,7 @@ function exBlock(m,P){
   let h=`<div class="exb"><div class="exh"><span class="badge">${m.tag}</span><h3 class="exn">${esc(m.name)}</h3><button class="fiche" onclick="openEx('${m.ex}')" aria-label="Fiche : ${esc(m.name)}">Fiche</button></div>
 <ul class="pills" aria-label="Prescription"><li>${m.sets} × ${esc(m.reps)}</li><li>RIR ${m.rir}</li><li>tempo ${esc(m.tempo)}</li>${rest}${m.deload?'<li class="pdl">décharge</li>':''}</ul>
 <p class="equip">${esc(m.equip)}</p>`;
-  if(lt)h+=`<p class="last"><span>La dernière fois · S${lt.w}${lt.d!==state.day?' '+SESS[lt.d].label.toLowerCase():''}${lt.dl?' (décharge)':''}</span><b class="tn">${lt.sets.filter(Boolean).map(setTxt).join(' · ')}</b></p>`;
+  if(lt)h+=`<p class="last"><span>La dernière fois · S${lt.w}${lt.d!==state.day?' '+dayLabel(lt.d).toLowerCase():''}${lt.dl?' (décharge)':''}</span><b class="tn">${lt.sets.filter(Boolean).map(setTxt).join(' · ')}</b></p>`;
   if(m.band){const b=getSet(m.ex,'b');
     h+=`<div class="bandrow"><label for="bd-${m.ex}">Élastique</label><input id="bd-${m.ex}" type="text" autocomplete="off" value="${esc(b.v??'')}" placeholder="${esc(lastBand(m.ex)||'ex. noir épais, 30-60 kg')}" oninput="setField('${m.ex}','b','v',this.value)"></div>`;}
   h+=`<div class="sets" role="group" aria-label="Séries : ${esc(m.name)}"><div class="shd" aria-hidden="true"><span>#</span><span>${m.wl||'kg'}</span><span>reps</span><span>fait</span></div>`;
@@ -1373,7 +1495,7 @@ function startWu(){const s=SESS[state.day];sessionStart();startTimer(wuMin(s)*60
 
 /* ---------- Démarrage ---------- */
 (async()=>{
-  await load();state.view=state.view||'today';render();
+  await load();render();renderLock();
   /* Minuteur en cours avant un rechargement par iOS : on le reprend, ou on signale la fin */
   const t=state.timer;
   if(t&&t.end>Date.now())showTimer();else if(t){state.timer=null;save();if(Date.now()-t.end<10*60e3)showAlarm(t,Date.now()-t.end);}
