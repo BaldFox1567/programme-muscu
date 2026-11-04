@@ -1158,15 +1158,22 @@ function exBlock(m,P){
   for(let i=0;i<m.sets;i++)h+=setRow(m,i,lt);
   return h+'</div></div>';
 }
+/* Ligne de série. Les gestes sont délégués (setInput, ACT.chk, ACT.bump) : rien n'est écrit dans des onclick */
 function setRow(m,i,lt){
-  const s=getSet(m.ex,i),id=m.ex+'-'+i,n=i+1,a=`'${m.ex}',${i}`;
+  const s=getSet(m.ex,i),id=m.ex+'-'+i,n=i+1,st=(f,d,l)=>`<button data-act="bump" data-f="${f}" data-d="${d}" aria-label="${l}, série ${n}">${disp(d>0?'+'+d:'−'+(-d))}</button>`;
   return `<div class="set${s.ok?' ok':''}" data-ex="${m.ex}" data-i="${i}"><span class="sn">${n}</span>
-<input id="w-${id}" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="next" value="${esc(disp(s.w??''))}" placeholder="${esc(phW(m,i,lt))}" aria-label="${m.wl==='+kg'?'Lest':'Charge'} série ${n}" oninput="inW(${a},this)" onfocus="setAct(this)">
-<input id="r-${id}" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" enterkeyhint="done" value="${esc(s.r??'')}" placeholder="${esc(phR(m,i,lt))}" aria-label="Répétitions série ${n}" oninput="setField(${a},'r',this.value)" onfocus="setAct(this)">
-<button class="chk" aria-pressed="${!!s.ok}" aria-label="Série ${n} faite" onclick="toggle(${a})">${CHECK}</button>
-<div class="step stw">${m.wl==='—'?'':`<button onclick="bump(${a},'w',-2.5)" aria-label="Moins 2,5 kg, série ${n}">−2,5</button><button onclick="bump(${a},'w',2.5)" aria-label="Plus 2,5 kg, série ${n}">+2,5</button>`}</div>
-<div class="step str"><button onclick="bump(${a},'r',-1)" aria-label="Une rep de moins, série ${n}">−1</button><button onclick="bump(${a},'r',1)" aria-label="Une rep de plus, série ${n}">+1</button></div></div>`;
+<input id="w-${id}" data-f="w" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="next" value="${esc(disp(s.w??''))}" placeholder="${esc(phW(m,i,lt))}" aria-label="${m.wl==='+kg'?'Lest':'Charge'} série ${n}">
+<input id="r-${id}" data-f="r" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" enterkeyhint="done" value="${esc(s.r??'')}" placeholder="${esc(phR(m,i,lt))}" aria-label="Répétitions série ${n}">
+<button class="chk" data-act="chk" aria-pressed="${!!s.ok}" aria-label="Série ${n} faite">${CHECK}</button>
+<div class="step stw">${m.wl==='—'?'':st('w',-2.5,'Moins 2,5 kg')+st('w',2.5,'Plus 2,5 kg')}</div>
+<div class="step str">${st('r',-1,'Une rep de moins')+st('r',1,'Une rep de plus')}</div></div>`;
 }
+const rowOf=el=>{const r=el.closest('.set');return r&&[r.dataset.ex,+r.dataset.i];};
+ACT.chk=b=>toggle(...rowOf(b));
+ACT.bump=b=>bump(...rowOf(b),b.dataset.f,+b.dataset.d);
+function setInput(el){const [ex,i]=rowOf(el);if(el.dataset.f==='w')inW(ex,i,el);else setField(ex,i,'r',el.value);}
+document.addEventListener('input',e=>{if(e.target.matches('.set input'))setInput(e.target);});
+document.addEventListener('focusin',e=>{if(e.target.matches('.set input'))setAct(e.target);});
 function recapHtml(){
   return `<section class="recap" id="recap" aria-labelledby="rcT"><h2 id="rcT">Fin de séance</h2>
 <div class="stats"><div><b id="rcDur" class="tn">—</b><small>durée</small></div><div><b id="rcSets" class="tn">0/0</b><small>séries</small></div><div><b id="rcVol" class="tn">0</b><small>kg de volume</small></div></div>
@@ -1414,8 +1421,10 @@ function openEx(ex){
 <h3>Progression dans ce bloc</h3><p style="margin:0">${esc(e.prog)}</p>
 <h3>Muscles travaillés</h3>${musSvg(e.mus)}
 <div class="legend"><span><span class="sw" style="background:var(--acc)"></span> principal</span><span><span class="sw" style="background:#a86e26"></span> secondaire</span></div>
-${e.rest?`<div class="btns"><button class="acc" onclick="closeSheet();startTimer(${e.rest},'${esc(e.name)}')">Lancer le repos ${fmt(e.rest)}</button></div>`:''}`);
+${e.rest?`<div class="btns"><button class="acc" data-act="exRest" data-ex="${ex}">Lancer le repos ${fmt(e.rest)}</button></div>`:''}`);
 }
+/* Nom passé par la clé, pas recopié dans un onclick (une apostrophe dans un nom cassait le bouton) */
+ACT.exRest=b=>{const e=CUR[b.dataset.ex]||EX[b.dataset.ex];closeSheet();startTimer(e.rest,e.name);};
 /* Feuille générique : monte depuis le bas, se ferme au bouton, à Échap, au fond ou en glissant vers le bas */
 let shFrom=null;
 const shPanel=()=>document.querySelector('#sheet .panel');
